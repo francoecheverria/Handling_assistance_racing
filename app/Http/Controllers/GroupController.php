@@ -51,13 +51,39 @@ class GroupController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', 'unique:groups,name'],
-            'schedule' => ['nullable', 'string', 'max:255'],
+            'schedule' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:5000'],
             'category_year' => ['required', 'integer', 'min:1990', 'max:2100'],
         ]);
 
         Group::create($validated);
 
         return back();
+    }
+
+    public function edit(Request $request, Group $group): Response
+    {
+        $this->ensureUserCanAccessGroup($request->user(), $group);
+
+        return Inertia::render('Groups/Edit', [
+            'group' => $group->only('id', 'name', 'schedule', 'description', 'category_year'),
+        ]);
+    }
+
+    public function update(Request $request, Group $group): RedirectResponse
+    {
+        $this->ensureUserCanAccessGroup($request->user(), $group);
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255', 'unique:groups,name,' . $group->id],
+            'schedule' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:5000'],
+            'category_year' => ['required', 'integer', 'min:1990', 'max:2100'],
+        ]);
+
+        $group->update($validated);
+
+        return redirect()->route('groups.show', $group);
     }
 
     public function show(Request $request, Group $group): Response

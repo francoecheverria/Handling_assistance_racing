@@ -28,6 +28,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'fichar asistencias',
             'editar asistencias',
             'gestionar profesores',
+            'gestionar administradores',
         ];
 
         foreach ($permissions as $name) {
@@ -36,12 +37,18 @@ class RolesAndPermissionsSeeder extends Seeder
 
         Role::query()
             ->where('guard_name', 'web')
-            ->whereNotIn('name', ['admin', 'profesor'])
+            ->whereNotIn('name', ['administrador_general', 'admin', 'profesor'])
             ->delete();
 
-        // Rol admin: todos los permisos
+        // Rol administrador_general: todos los permisos (incluye gestionar administradores)
+        $superAdmin = Role::firstOrCreate(['name' => 'administrador_general', 'guard_name' => 'web']);
+        $superAdmin->syncPermissions(Permission::all());
+
+        // Rol admin: mismos permisos que administrador_general EXCEPTO gestionar administradores
         $admin = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
-        $admin->syncPermissions(Permission::all());
+        $admin->syncPermissions(
+            Permission::where('name', '!=', 'gestionar administradores')->get()
+        );
 
         $profesor = Role::firstOrCreate(['name' => 'profesor', 'guard_name' => 'web']);
         $profesor->syncPermissions([

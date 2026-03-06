@@ -19,8 +19,9 @@ class DatabaseSeeder extends Seeder
      * Seed the application's database.
      *
      * Seguridad:
-     * - En producción: solo se crea el admin si ADMIN_EMAIL y ADMIN_PASSWORD están en .env.
-     * - En local: se crean usuarios de prueba (admin@example.com, profe@example.com) y datos demo.
+     * - En producción: solo se crea el Administrador general si ADMIN_EMAIL y ADMIN_PASSWORD están en .env.
+     *   Ese usuario es el único que puede crear/editar administradores normales.
+     * - En local: se crea administrador general (admin@example.com) y datos demo.
      * - Nunca usar contraseñas por defecto en producción.
      */
     public function run(): void
@@ -30,31 +31,31 @@ class DatabaseSeeder extends Seeder
         $isProduction = app()->environment('production');
 
         if ($isProduction) {
-            // En producción solo crear admin si se definieron credenciales en .env (deploy inicial)
+            // En producción: crear solo el Administrador general desde .env (deploy inicial)
             $adminEmail = env('ADMIN_EMAIL');
             $adminPassword = env('ADMIN_PASSWORD');
             if ($adminEmail && $adminPassword) {
-                $admin = User::firstOrCreate(
+                $superAdmin = User::firstOrCreate(
                     ['email' => $adminEmail],
                     [
-                        'name' => env('ADMIN_NAME', 'Admin'),
+                        'name' => env('ADMIN_NAME', 'Administrador general'),
                         'password' => $adminPassword,
                     ]
                 );
-                $admin->syncRoles(['admin']);
+                $superAdmin->syncRoles(['administrador_general']);
             }
             return;
         }
 
-        // Entorno local / desarrollo: usuarios y datos de prueba
-        $admin = User::firstOrCreate(
+        // Entorno local / desarrollo: administrador general + datos de prueba
+        $superAdmin = User::firstOrCreate(
             ['email' => 'admin@example.com'],
             [
-                'name' => 'Admin',
+                'name' => 'Administrador general',
                 'password' => env('ADMIN_PASSWORD', 'password'),
             ]
         );
-        $admin->syncRoles(['admin']);
+        $superAdmin->syncRoles(['administrador_general']);
 
         $profesorUser = User::firstOrCreate(
             ['email' => 'profe@example.com'],

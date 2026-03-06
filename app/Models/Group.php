@@ -17,6 +17,7 @@ class Group extends Model
     protected $fillable = [
         'name',
         'schedule',
+        'description',
         'category_year',
     ];
 

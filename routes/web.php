@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdministratorController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\CoachController;
 use App\Http\Controllers\GroupController;
@@ -50,6 +51,13 @@ Route::get('/dashboard', function (Request $request) {
 // ->middleware(['auth', 'role_or_permission:admin|gestionar tiras'])
 
 Route::middleware('auth')->group(function () {
+    Route::get('/administradores', [AdministratorController::class, 'index'])
+        ->middleware('permission:gestionar administradores')
+        ->name('administrators.index');
+    Route::post('/administradores', [AdministratorController::class, 'store'])
+        ->middleware('permission:gestionar administradores')
+        ->name('administrators.store');
+
     Route::get('/profesores', [CoachController::class, 'index'])
         ->middleware('permission:gestionar profesores')
         ->name('coaches.index');
@@ -72,6 +80,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/mis-tiras/{group}', [GroupController::class, 'show'])
         ->middleware('permission:ver jugadores')
         ->name('groups.show');
+    Route::get('/mis-tiras/{group}/editar', [GroupController::class, 'edit'])
+        ->middleware('permission:ver jugadores')
+        ->name('groups.edit');
+    Route::put('/mis-tiras/{group}', [GroupController::class, 'update'])
+        ->middleware('permission:ver jugadores')
+        ->name('groups.update');
     Route::get('/mis-jugadores', [GroupController::class, 'myPlayers'])
         ->middleware('permission:ver jugadores')
         ->name('players.mine');

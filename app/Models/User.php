@@ -61,6 +61,11 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        return $this->hasRole('admin');
+        return $this->hasRole('admin') || $this->hasRole('administrador_general');
+    }
+
+    public function isAdministradorGeneral(): bool
+    {
+        return $this->hasRole('administrador_general');
     }
 }

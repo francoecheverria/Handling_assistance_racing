@@ -4,7 +4,7 @@ import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
-import { FaCalendarCheck, FaChalkboardTeacher, FaClipboardList, FaHome, FaUsers } from 'react-icons/fa';
+import { FaCalendarCheck, FaChalkboardTeacher, FaClipboardList, FaHome, FaUserShield, FaUsers } from 'react-icons/fa';
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
@@ -12,6 +12,7 @@ export default function AuthenticatedLayout({ header, children }) {
     const canSeePlayers = (user?.permissions || []).includes('ver jugadores');
     const canSeeAttendances = (user?.permissions || []).includes('ver asistencias');
     const canManageCoaches = (user?.permissions || []).includes('gestionar profesores');
+    const canManageAdmins = (user?.permissions || []).includes('gestionar administradores');
 
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
@@ -49,6 +50,18 @@ export default function AuthenticatedLayout({ header, children }) {
                                         Inicio
                                     </span>
                                 </NavLink>
+                                {canManageAdmins && (
+                                    <NavLink
+                                        href={route('administrators.index')}
+                                        active={route().current('administrators.index')}
+                                        className=" !text-white hover:!text-white/85 !border-brand-primary/40"
+                                    >
+                                        <span className="inline-flex items-center gap-2">
+                                            <FaUserShield className="h-4 w-4" />
+                                            Administradores
+                                        </span>
+                                    </NavLink>
+                                )}
                                 {canManageCoaches && (
                                     <NavLink
                                         href={route('coaches.index')}
@@ -66,7 +79,8 @@ export default function AuthenticatedLayout({ header, children }) {
                                         href={route('groups.index')}
                                         active={
                                             route().current('groups.index') ||
-                                            route().current('groups.show')
+                                            route().current('groups.show') ||
+                                            route().current('groups.edit')
                                         }
                                         className=" !text-white hover:!text-white/85 !border-brand-primary/40"
                                     >
@@ -259,6 +273,17 @@ export default function AuthenticatedLayout({ header, children }) {
                                 Inicio
                             </span>
                         </ResponsiveNavLink>
+                        {canManageAdmins && (
+                            <ResponsiveNavLink
+                                href={route('administrators.index')}
+                                active={route().current('administrators.index')}
+                            >
+                                <span className="inline-flex items-center gap-2">
+                                    <FaUserShield className="h-4 w-4" />
+                                    Administradores
+                                </span>
+                            </ResponsiveNavLink>
+                        )}
                         {canManageCoaches && (
                             <ResponsiveNavLink
                                 href={route('coaches.index')}

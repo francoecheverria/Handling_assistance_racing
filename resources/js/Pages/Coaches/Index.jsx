@@ -7,6 +7,9 @@ import { FaEdit, FaPlusCircle, FaSave, FaTrashAlt, FaChalkboardTeacher } from 'r
 const emptyCoach = {
     name: '',
     phone: '',
+    email: '',
+    password: '',
+    password_confirmation: '',
     group_ids: [],
 };
 
@@ -38,6 +41,9 @@ export default function CoachesIndex({ coaches, groups = [] }) {
         updateForm.setData({
             name: coach.name || '',
             phone: coach.phone || '',
+            email: coach.email || coach.user?.email || '',
+            password: '',
+            password_confirmation: '',
             group_ids: (coach.groups || []).map((g) => g.id),
         });
     };
@@ -153,7 +159,7 @@ export default function CoachesIndex({ coaches, groups = [] }) {
                                                             : '-'}
                                                     </td>
                                                     <td className="border px-3 py-2">
-                                                        {coach.user?.email || '-'}
+                                                        {coach.email || coach.user?.email || '-'}
                                                     </td>
                                                     <td className="border px-3 py-2">
                                                         <div className="flex gap-3">
@@ -199,6 +205,7 @@ export default function CoachesIndex({ coaches, groups = [] }) {
                     </h3>
                     <form onSubmit={onUpdateCoach} className="grid gap-3">
                         <input
+                            type="text"
                             className="rounded border-brand-light/50 bg-brand-white text-brand-dark"
                             placeholder="Nombre *"
                             value={updateForm.data.name}
@@ -206,6 +213,52 @@ export default function CoachesIndex({ coaches, groups = [] }) {
                                 updateForm.setData('name', e.target.value)
                             }
                         />
+                        {updateForm.errors.name && (
+                            <p className="text-sm text-red-600">{updateForm.errors.name}</p>
+                        )}
+                        <div>
+                            <label className="mb-1 block text-sm font-medium text-brand-dark">
+                                Email (para iniciar sesión)
+                            </label>
+                            <input
+                                type="email"
+                                className="w-full rounded border-brand-light/50 bg-brand-white text-brand-dark"
+                                placeholder="profesor@ejemplo.com"
+                                value={updateForm.data.email}
+                                onChange={(e) =>
+                                    updateForm.setData('email', e.target.value)
+                                }
+                            />
+                            {updateForm.errors.email && (
+                                <p className="mt-1 text-sm text-red-600">{updateForm.errors.email}</p>
+                            )}
+                        </div>
+                        <div>
+                            <label className="mb-1 block text-sm font-medium text-brand-dark">
+                                Nueva contraseña (dejar en blanco para no cambiar)
+                            </label>
+                            <input
+                                type="password"
+                                className="w-full rounded border-brand-light/50 bg-brand-white text-brand-dark"
+                                placeholder="••••••••"
+                                value={updateForm.data.password}
+                                onChange={(e) =>
+                                    updateForm.setData('password', e.target.value)
+                                }
+                            />
+                            {updateForm.errors.password && (
+                                <p className="mt-1 text-sm text-red-600">{updateForm.errors.password}</p>
+                            )}
+                            <input
+                                type="password"
+                                className="mt-2 w-full rounded border-brand-light/50 bg-brand-white text-brand-dark"
+                                placeholder="Confirmar nueva contraseña"
+                                value={updateForm.data.password_confirmation}
+                                onChange={(e) =>
+                                    updateForm.setData('password_confirmation', e.target.value)
+                                }
+                            />
+                        </div>
                         <input
                             className="rounded border-brand-light/50 bg-brand-white text-brand-dark"
                             placeholder="Teléfono"
@@ -266,6 +319,7 @@ export default function CoachesIndex({ coaches, groups = [] }) {
                     </h3>
                     <form onSubmit={onCreateCoach} className="grid gap-3">
                         <input
+                            type="text"
                             className="rounded border-brand-light/50 bg-brand-white text-brand-dark"
                             placeholder="Nombre *"
                             value={createForm.data.name}
@@ -273,6 +327,60 @@ export default function CoachesIndex({ coaches, groups = [] }) {
                                 createForm.setData('name', e.target.value)
                             }
                         />
+                        {createForm.errors.name && (
+                            <p className="text-sm text-red-600">{createForm.errors.name}</p>
+                        )}
+                        <div>
+                            <label className="mb-1 block text-sm font-medium text-brand-dark">
+                                Email (para iniciar sesión) *
+                            </label>
+                            <input
+                                type="email"
+                                className="w-full rounded border-brand-light/50 bg-brand-white text-brand-dark"
+                                placeholder="profesor@ejemplo.com"
+                                value={createForm.data.email}
+                                onChange={(e) =>
+                                    createForm.setData('email', e.target.value)
+                                }
+                            />
+                            {createForm.errors.email && (
+                                <p className="mt-1 text-sm text-red-600">{createForm.errors.email}</p>
+                            )}
+                        </div>
+                        <div>
+                            <label className="mb-1 block text-sm font-medium text-brand-dark">
+                                Contraseña * (mín. 8 caracteres)
+                            </label>
+                            <input
+                                type="password"
+                                className="w-full rounded border-brand-light/50 bg-brand-white text-brand-dark"
+                                placeholder="Contraseña"
+                                value={createForm.data.password}
+                                onChange={(e) =>
+                                    createForm.setData('password', e.target.value)
+                                }
+                            />
+                            {createForm.errors.password && (
+                                <p className="mt-1 text-sm text-red-600">{createForm.errors.password}</p>
+                            )}
+                        </div>
+                        <div>
+                            <label className="mb-1 block text-sm font-medium text-brand-dark">
+                                Confirmar contraseña *
+                            </label>
+                            <input
+                                type="password"
+                                className="w-full rounded border-brand-light/50 bg-brand-white text-brand-dark"
+                                placeholder="Repetir contraseña"
+                                value={createForm.data.password_confirmation}
+                                onChange={(e) =>
+                                    createForm.setData('password_confirmation', e.target.value)
+                                }
+                            />
+                            {createForm.errors.password_confirmation && (
+                                <p className="mt-1 text-sm text-red-600">{createForm.errors.password_confirmation}</p>
+                            )}
+                        </div>
                         <input
                             className="rounded border-brand-light/50 bg-brand-white text-brand-dark"
                             placeholder="Teléfono"

@@ -1,7 +1,8 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Modal from '@/Components/Modal';
+import SchedulePicker from '@/Components/SchedulePicker';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FaEdit, FaPlusCircle, FaSave, FaTrashAlt, FaUsers } from 'react-icons/fa';
 
 const emptyPlayer = {
@@ -22,9 +23,52 @@ const emptyPlayer = {
 export default function GroupsShow({ group, can }) {
     const [editingPlayerId, setEditingPlayerId] = useState(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showEditGroupModal, setShowEditGroupModal] = useState(false);
 
     const createForm = useForm(emptyPlayer);
     const updateForm = useForm(emptyPlayer);
+    const editGroupForm = useForm({
+        name: group?.name ?? '',
+        schedule: group?.schedule ?? '',
+        description: group?.description ?? '',
+        category_year: group?.category_year ?? '',
+    });
+
+    useEffect(() => {
+        if (typeof window !== 'undefined' && window.location.search.includes('edit=1')) {
+            editGroupForm.setData({
+                name: group?.name ?? '',
+                schedule: group?.schedule ?? '',
+                description: group?.description ?? '',
+                category_year: group?.category_year ?? '',
+            });
+            setShowEditGroupModal(true);
+        }
+    }, []);
+
+    const openEditGroupModal = () => {
+        editGroupForm.setData({
+            name: group?.name ?? '',
+            schedule: group?.schedule ?? '',
+            description: group?.description ?? '',
+            category_year: group?.category_year ?? '',
+        });
+        setShowEditGroupModal(true);
+    };
+
+    const onEditGroup = (e) => {
+        e.preventDefault();
+        editGroupForm.put(route('groups.update', group.id), {
+            preserveScroll: true,
+            onSuccess: () => {
+                setShowEditGroupModal(false);
+            },
+        });
+    };
+
+    const closeEditGroupModal = () => {
+        setShowEditGroupModal(false);
+    };
 
     const onCreatePlayer = (e) => {
         e.preventDefault();
@@ -94,12 +138,14 @@ export default function GroupsShow({ group, can }) {
                     <h2 className="text-xl font-semibold leading-tight text-brand-dark">
                         {group.name}
                     </h2>
-                    <Link
-                        href={route('groups.index')}
-                        className="text-sm text-brand-primary hover:underline"
-                    >
-                        Volver a mis tiras
-                    </Link>
+                    <div className="flex items-center gap-3">
+                        <Link
+                            href={route('groups.index')}
+                            className="text-sm text-brand-primary hover:underline"
+                        >
+                            Volver a mis tiras
+                        </Link>
+                    </div>
                 </div>
             }
         >
@@ -108,21 +154,37 @@ export default function GroupsShow({ group, can }) {
             <div className="py-12">
                 <div className="mx-auto grid max-w-7xl gap-6 sm:px-6 lg:px-8">
                     <div className="overflow-hidden bg-brand-white shadow-sm sm:rounded-lg">
-                        <div className="space-y-2 p-6 text-brand-dark">
-                            <p>
-                                <span className="font-semibold">Horario:</span>{' '}
-                                {group.schedule || 'Sin definir'}
-                            </p>
-                            <p>
-                                <span className="font-semibold">Categoría:</span>{' '}
-                                {group.category_year || 'Sin definir'}
-                            </p>
-                            <p>
-                                <span className="font-semibold">Profesores:</span>{' '}
-                                {(group.coaches || [])
-                                    .map((coach) => coach.name)
-                                    .join(', ') || 'Sin asignar'}
-                            </p>
+                        <div className="flex flex-col gap-4 p-6 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="space-y-2 text-brand-dark">
+                                <p>
+                                    <span className="font-semibold">Horario:</span>{' '}
+                                    {group.schedule || 'Sin definir'}
+                                </p>
+                                <p>
+                                    <span className="font-semibold">Categoría:</span>{' '}
+                                    {group.category_year || 'Sin definir'}
+                                </p>
+                                {group.description && (
+                                    <p>
+                                        <span className="font-semibold">Texto:</span>{' '}
+                                        {group.description}
+                                    </p>
+                                )}
+                                <p>
+                                    <span className="font-semibold">Profesores:</span>{' '}
+                                    {(group.coaches || [])
+                                        .map((coach) => coach.name)
+                                        .join(', ') || 'Sin asignar'}
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={openEditGroupModal}
+                                className="inline-flex shrink-0 items-center gap-2 self-start rounded-md border-2 border-brand-primary bg-white px-4 py-2 text-sm font-semibold text-brand-primary transition hover:bg-brand-primary hover:text-white"
+                            >
+                                <FaEdit className="h-4 w-4" />
+                                Editar datos de la tira
+                            </button>
                         </div>
                     </div>
 
@@ -529,6 +591,109 @@ export default function GroupsShow({ group, can }) {
                     </div>
                 </Modal>
             )}
+
+            <Modal
+                show={showEditGroupModal}
+                onClose={closeEditGroupModal}
+                maxWidth="lg"
+            >
+                <div className="p-6">
+                    <h3 className="mb-4 text-lg font-semibold text-brand-dark">
+                        Editar datos de la tira
+                    </h3>
+                    <form onSubmit={onEditGroup} className="flex flex-col gap-4">
+                        <div>
+                            <label className="mb-1 block text-sm font-medium text-brand-dark">
+                                Nombre de la tira *
+                            </label>
+                            <input
+                                type="text"
+                                className="w-full rounded border-brand-light/50 bg-brand-white text-brand-dark"
+                                placeholder="Ej: Tira 1"
+                                value={editGroupForm.data.name}
+                                onChange={(e) =>
+                                    editGroupForm.setData('name', e.target.value)
+                                }
+                            />
+                            {editGroupForm.errors.name && (
+                                <p className="mt-1 text-sm text-red-600">
+                                    {editGroupForm.errors.name}
+                                </p>
+                            )}
+                        </div>
+                        <SchedulePicker
+                            value={editGroupForm.data.schedule}
+                            onChange={(v) =>
+                                editGroupForm.setData('schedule', v)
+                            }
+                            error={editGroupForm.errors.schedule}
+                        />
+                        <div>
+                            <label className="mb-1 block text-sm font-medium text-brand-dark">
+                                Texto / descripción (opcional)
+                            </label>
+                            <textarea
+                                rows={4}
+                                className="w-full rounded border-brand-light/50 bg-brand-white text-brand-dark"
+                                placeholder="Información adicional de la tira"
+                                value={editGroupForm.data.description}
+                                onChange={(e) =>
+                                    editGroupForm.setData(
+                                        'description',
+                                        e.target.value,
+                                    )
+                                }
+                            />
+                            {editGroupForm.errors.description && (
+                                <p className="mt-1 text-sm text-red-600">
+                                    {editGroupForm.errors.description}
+                                </p>
+                            )}
+                        </div>
+                        <div>
+                            <label className="mb-1 block text-sm font-medium text-brand-dark">
+                                Categoría (año) *
+                            </label>
+                            <input
+                                type="number"
+                                min="1990"
+                                max="2100"
+                                className="w-full rounded border-brand-light/50 bg-brand-white text-brand-dark"
+                                placeholder="Ej: 2010"
+                                value={editGroupForm.data.category_year}
+                                onChange={(e) =>
+                                    editGroupForm.setData(
+                                        'category_year',
+                                        e.target.value,
+                                    )
+                                }
+                            />
+                            {editGroupForm.errors.category_year && (
+                                <p className="mt-1 text-sm text-red-600">
+                                    {editGroupForm.errors.category_year}
+                                </p>
+                            )}
+                        </div>
+                        <div className="flex gap-2">
+                            <button
+                                type="submit"
+                                className="inline-flex items-center gap-2 rounded bg-brand-primary px-4 py-2 font-semibold text-white hover:bg-brand-dark disabled:opacity-70"
+                                disabled={editGroupForm.processing}
+                            >
+                                <FaSave className="h-4 w-4" />
+                                Guardar cambios
+                            </button>
+                            <button
+                                type="button"
+                                className="rounded border border-brand-light/50 px-4 py-2 text-brand-dark hover:bg-brand-light/15"
+                                onClick={closeEditGroupModal}
+                            >
+                                Cancelar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </Modal>
         </AuthenticatedLayout>
     );
 }
