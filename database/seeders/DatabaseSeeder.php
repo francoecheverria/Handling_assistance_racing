@@ -17,16 +17,41 @@ class DatabaseSeeder extends Seeder
 
     /**
      * Seed the application's database.
+     *
+     * Seguridad:
+     * - En producción: solo se crea el admin si ADMIN_EMAIL y ADMIN_PASSWORD están en .env.
+     * - En local: se crean usuarios de prueba (admin@example.com, profe@example.com) y datos demo.
+     * - Nunca usar contraseñas por defecto en producción.
      */
     public function run(): void
     {
         $this->call(RolesAndPermissionsSeeder::class);
 
+        $isProduction = app()->environment('production');
+
+        if ($isProduction) {
+            // En producción solo crear admin si se definieron credenciales en .env (deploy inicial)
+            $adminEmail = env('ADMIN_EMAIL');
+            $adminPassword = env('ADMIN_PASSWORD');
+            if ($adminEmail && $adminPassword) {
+                $admin = User::firstOrCreate(
+                    ['email' => $adminEmail],
+                    [
+                        'name' => env('ADMIN_NAME', 'Admin'),
+                        'password' => $adminPassword,
+                    ]
+                );
+                $admin->syncRoles(['admin']);
+            }
+            return;
+        }
+
+        // Entorno local / desarrollo: usuarios y datos de prueba
         $admin = User::firstOrCreate(
             ['email' => 'admin@example.com'],
             [
                 'name' => 'Admin',
-                'password' => 'password',
+                'password' => env('ADMIN_PASSWORD', 'password'),
             ]
         );
         $admin->syncRoles(['admin']);
@@ -35,7 +60,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'profe@example.com'],
             [
                 'name' => 'Profesor Demo',
-                'password' => 'password',
+                'password' => env('PROFE_PASSWORD', 'password'),
             ]
         );
         $profesorUser->syncRoles(['profesor']);
