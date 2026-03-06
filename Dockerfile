@@ -54,4 +54,4 @@ EXPOSE 8080
 # opcionalmente seed solo si configurado, luego servir.
 # IMPORTANTE: En Railway (o similar) montar un volumen en /var/www/html/database
 # para que database.sqlite persista entre deploys; si no, cada deploy empieza con DB vacía.
-CMD ["sh", "-c", "su -s /bin/sh www-data -c 'touch database/database.sqlite 2>/dev/null || true && chmod 664 database/database.sqlite 2>/dev/null || true && php artisan config:clear && php artisan route:clear && php artisan view:clear && php artisan migrate --force && php artisan db:seed --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}'"]
+CMD ["sh", "-c", "su -s /bin/sh www-data -c 'php artisan config:clear && php artisan route:clear && php artisan view:clear && php artisan migrate --force && php artisan db:seed --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}'"]
