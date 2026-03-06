@@ -20,6 +20,7 @@
 /storage/pail
 /vendor
 /database/database.sqlite
+/database/sqlite/
 Homestead.json
 Homestead.yaml
 Thumbs.db

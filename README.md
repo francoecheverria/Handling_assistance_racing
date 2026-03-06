@@ -24,6 +24,22 @@ docker compose --profile dev up -d
 - **App:** http://localhost:8001  
 - **Vite (profile dev):** http://localhost:5173  
 
+## Producción (Railway)
+
+- **Base de datos:** Usar **PostgreSQL** como servicio en Railway. La app se conecta con las variables que Railway inyecta (`${{Postgres.DATABASE_URL}}` o `DB_HOST`, `DB_PORT`, etc.). Los datos **persisten** en Postgres entre deploys; no hace falta volumen.
+- **Variables:** En el servicio de la app, configurar `DB_CONNECTION=pgsql` y las variables de Postgres (o referenciar el servicio Postgres). No usar `migrate:fresh` en producción.
+- **Primer deploy:** Migraciones y seed se ejecutan solos al arrancar el contenedor (CMD del Dockerfile). En producción poner `APP_DEBUG=false`.
+
+## Local con SQLite persistente (alternativa a MySQL)
+
+Si querés usar SQLite en local sin instalar MySQL:
+
+1. Crear la carpeta `database/sqlite` en la raíz del proyecto.
+2. En `docker-compose.yml`, montar el volumen: `./database/sqlite:/var/www/html/database`.
+3. En variables del servicio `app`: `DB_CONNECTION=sqlite`, `DB_DATABASE=database/database.sqlite`.
+
+Así los datos quedan en `./database/sqlite` y persisten al bajar/levantar el contenedor.
+
 ## Comandos útiles
 
 ```bash
