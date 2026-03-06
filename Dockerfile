@@ -33,10 +33,10 @@ WORKDIR /var/www/html
 # 2. COPIAR los archivos de tu proyecto al contenedor
 COPY . .
 
-# Crear el archivo de base de datos SQLite y dar permisos (para SESSION_DRIVER=database y CACHE_STORE=database)
-RUN touch database/database.sqlite && \
-    chown -R www-data:www-data database/database.sqlite storage bootstrap/cache && \
-    chmod 664 database/database.sqlite
+# No crear database.sqlite aquí: en producción debe vivir en un volumen persistente.
+# Solo asegurar que el directorio database exista y tenga dueño correcto.
+RUN mkdir -p database storage bootstrap/cache && \
+    chown -R www-data:www-data storage bootstrap/cache database
 
 # 3. Instalar dependencias de PHP (Composer)
 RUN composer install --no-interaction --optimize-autoloader --no-dev
@@ -50,6 +50,8 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 # Railway usa la variable de entorno PORT dinámicamente
 EXPOSE 8080
 
-# Limpiar caché y migrar al arrancar (variables de Railway), luego servir
-# CMD Final: Ejecuta todo como www-data para evitar conflictos de permisos
-CMD ["sh", "-c", "su -s /bin/sh www-data -c 'php artisan config:clear && php artisan route:clear && php artisan view:clear && php artisan migrate --force && php artisan db:seed --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}'"]
+# Al arrancar: crear DB si no existe (para SQLite), migrar solo (nunca migrate:fresh),
+# opcionalmente seed solo si configurado, luego servir.
+# IMPORTANTE: En Railway (o similar) montar un volumen en /var/www/html/database
+# para que database.sqlite persista entre deploys; si no, cada deploy empieza con DB vacía.
+CMD ["sh", "-c", "su -s /bin/sh www-data -c 'touch database/database.sqlite 2>/dev/null || true && chmod 664 database/database.sqlite 2>/dev/null || true && php artisan config:clear && php artisan route:clear && php artisan view:clear && php artisan migrate --force && php artisan db:seed --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}'"]
