@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Modal from '@/Components/Modal';
 import { Head, useForm } from '@inertiajs/react';
 import { useState } from 'react';
-import { FaPlusCircle, FaSave, FaUserShield } from 'react-icons/fa';
+import { FaEdit, FaPlusCircle, FaSave, FaUserShield } from 'react-icons/fa';
 
 const emptyAdmin = {
     name: '',
@@ -13,7 +13,9 @@ const emptyAdmin = {
 
 export default function AdministratorsIndex({ administrators }) {
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [editingAdminId, setEditingAdminId] = useState(null);
     const createForm = useForm(emptyAdmin);
+    const editForm = useForm(emptyAdmin);
 
     const onCreateAdmin = (e) => {
         e.preventDefault();
@@ -29,6 +31,30 @@ export default function AdministratorsIndex({ administrators }) {
     const closeCreateModal = () => {
         setShowCreateModal(false);
         createForm.reset();
+    };
+
+    const openEditModal = (admin) => {
+        setEditingAdminId(admin.id);
+        editForm.setData({
+            name: admin.name || '',
+            email: admin.email || '',
+            password: '',
+            password_confirmation: '',
+        });
+    };
+
+    const closeEditModal = () => {
+        setEditingAdminId(null);
+        editForm.reset();
+    };
+
+    const onUpdateAdmin = (e) => {
+        e.preventDefault();
+        if (!editingAdminId) return;
+        editForm.put(route('administrators.update', editingAdminId), {
+            preserveScroll: true,
+            onSuccess: () => closeEditModal(),
+        });
     };
 
     return (
@@ -80,6 +106,9 @@ export default function AdministratorsIndex({ administrators }) {
                                                 <th className="border px-3 py-2 text-left">
                                                     Fecha de alta
                                                 </th>
+                                                <th className="border px-3 py-2 text-left">
+                                                    Acciones
+                                                </th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -99,6 +128,18 @@ export default function AdministratorsIndex({ administrators }) {
                                                                   'es-AR',
                                                               )
                                                             : '-'}
+                                                    </td>
+                                                    <td className="border px-3 py-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                openEditModal(admin)
+                                                            }
+                                                            className="inline-flex items-center gap-1.5 text-brand-primary hover:underline"
+                                                        >
+                                                            <FaEdit className="h-3.5 w-3.5" />
+                                                            Editar
+                                                        </button>
                                                     </td>
                                                 </tr>
                                             ))}
@@ -223,6 +264,114 @@ export default function AdministratorsIndex({ administrators }) {
                                 type="button"
                                 className="rounded border border-brand-light/50 px-4 py-2 text-brand-dark hover:bg-brand-light/15"
                                 onClick={closeCreateModal}
+                            >
+                                Cancelar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </Modal>
+
+            <Modal
+                show={Boolean(editingAdminId)}
+                onClose={closeEditModal}
+                maxWidth="md"
+            >
+                <div className="p-6">
+                    <h3 className="mb-4 text-lg font-semibold text-brand-dark">
+                        Editar administrador
+                    </h3>
+                    <form
+                        onSubmit={onUpdateAdmin}
+                        className="flex flex-col gap-3"
+                    >
+                        <div>
+                            <label className="mb-1 block text-sm font-medium text-brand-dark">
+                                Nombre *
+                            </label>
+                            <input
+                                type="text"
+                                className="w-full rounded border-brand-light/50 bg-brand-white text-brand-dark"
+                                placeholder="Nombre completo"
+                                value={editForm.data.name}
+                                onChange={(e) =>
+                                    editForm.setData('name', e.target.value)
+                                }
+                            />
+                            {editForm.errors.name && (
+                                <p className="mt-1 text-sm text-red-600">
+                                    {editForm.errors.name}
+                                </p>
+                            )}
+                        </div>
+                        <div>
+                            <label className="mb-1 block text-sm font-medium text-brand-dark">
+                                Email *
+                            </label>
+                            <input
+                                type="email"
+                                className="w-full rounded border-brand-light/50 bg-brand-white text-brand-dark"
+                                placeholder="email@ejemplo.com"
+                                value={editForm.data.email}
+                                onChange={(e) =>
+                                    editForm.setData('email', e.target.value)
+                                }
+                            />
+                            {editForm.errors.email && (
+                                <p className="mt-1 text-sm text-red-600">
+                                    {editForm.errors.email}
+                                </p>
+                            )}
+                        </div>
+                        <div>
+                            <label className="mb-1 block text-sm font-medium text-brand-dark">
+                                Nueva contraseña (dejar en blanco para no cambiar)
+                            </label>
+                            <input
+                                type="password"
+                                className="w-full rounded border-brand-light/50 bg-brand-white text-brand-dark"
+                                placeholder="••••••••"
+                                value={editForm.data.password}
+                                onChange={(e) =>
+                                    editForm.setData(
+                                        'password',
+                                        e.target.value,
+                                    )
+                                }
+                            />
+                            {editForm.errors.password && (
+                                <p className="mt-1 text-sm text-red-600">
+                                    {editForm.errors.password}
+                                </p>
+                            )}
+                            <input
+                                type="password"
+                                className="mt-2 w-full rounded border-brand-light/50 bg-brand-white text-brand-dark"
+                                placeholder="Confirmar nueva contraseña"
+                                value={editForm.data.password_confirmation}
+                                onChange={(e) =>
+                                    editForm.setData(
+                                        'password_confirmation',
+                                        e.target.value,
+                                    )
+                                }
+                            />
+                        </div>
+                        <div className="mt-2 flex gap-2">
+                            <button
+                                type="submit"
+                                className="rounded bg-brand-primary px-4 py-2 font-semibold text-brand-white hover:bg-brand-dark disabled:opacity-70"
+                                disabled={editForm.processing}
+                            >
+                                <span className="inline-flex items-center gap-2">
+                                    <FaSave className="h-4 w-4" />
+                                    Guardar cambios
+                                </span>
+                            </button>
+                            <button
+                                type="button"
+                                className="rounded border border-brand-light/50 px-4 py-2 text-brand-dark hover:bg-brand-light/15"
+                                onClick={closeEditModal}
                             >
                                 Cancelar
                             </button>

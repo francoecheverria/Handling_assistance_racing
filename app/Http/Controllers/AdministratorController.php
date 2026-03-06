@@ -40,4 +40,24 @@ class AdministratorController extends Controller
 
         return back();
     }
+
+    public function update(Request $request, User $user): RedirectResponse
+    {
+        abort_unless($user->hasRole('admin'), 403);
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $user->name = $validated['name'];
+        $user->email = $validated['email'];
+        if (! empty($validated['password'] ?? null)) {
+            $user->password = $validated['password'];
+        }
+        $user->save();
+
+        return back();
+    }
 }

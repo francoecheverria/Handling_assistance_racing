@@ -57,6 +57,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/administradores', [AdministratorController::class, 'store'])
         ->middleware('permission:gestionar administradores')
         ->name('administrators.store');
+    Route::put('/administradores/{user}', [AdministratorController::class, 'update'])
+        ->middleware('permission:gestionar administradores')
+        ->name('administrators.update');
 
     Route::get('/profesores', [CoachController::class, 'index'])
         ->middleware('permission:gestionar profesores')
