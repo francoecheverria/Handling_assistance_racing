@@ -33,17 +33,22 @@ WORKDIR /var/www/html
 # 2. COPIAR los archivos de tu proyecto al contenedor
 COPY . .
 
+# Crear el archivo de base de datos SQLite y dar permisos (para SESSION_DRIVER=database y CACHE_STORE=database)
+RUN touch database/database.sqlite && \
+    chown -R www-data:www-data database/database.sqlite storage bootstrap/cache && \
+    chmod 664 database/database.sqlite
+
 # 3. Instalar dependencias de PHP (Composer)
 RUN composer install --no-interaction --optimize-autoloader --no-dev
 
 # 4. Instalar dependencias de JS y compilar Inertia/React
 RUN npm install && npm run build
 
-# 5. Permisos necesarios para Laravel
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# 5. Permisos necesarios para Laravel (storage y cache ya incluidos arriba)
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
 
 # Railway usa la variable de entorno PORT dinámicamente
 EXPOSE 8080
 
-# Usamos la variable $PORT de Railway si está disponible, sino 8080
-CMD ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"]
+# Migraciones al arrancar (las variables de entorno vienen de Railway) y luego servir
+CMD ["sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"]
