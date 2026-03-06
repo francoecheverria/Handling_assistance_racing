@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\AttendanceRecord;
 use App\Models\AttendanceSession;
+use App\Models\Category;
 use App\Models\Coach;
 use App\Models\Group;
 use App\Models\Player;
@@ -55,6 +56,8 @@ class DatabaseSeeder extends Seeder
                 'password' => env('ADMIN_PASSWORD', 'password'),
             ]
         );
+        $superAdmin->password = env('ADMIN_PASSWORD', 'password');
+        $superAdmin->save();
         $superAdmin->syncRoles(['administrador_general']);
 
         $profesorUser = User::firstOrCreate(
@@ -64,6 +67,8 @@ class DatabaseSeeder extends Seeder
                 'password' => env('PROFE_PASSWORD', 'password'),
             ]
         );
+        $profesorUser->password = env('PROFE_PASSWORD', 'password');
+        $profesorUser->save();
         $profesorUser->syncRoles(['profesor']);
 
         User::query()->where('email', 'coordinador@example.com')->delete();
@@ -78,18 +83,18 @@ class DatabaseSeeder extends Seeder
 
         $groupA = Group::updateOrCreate(
             ['name' => 'Tira 1'],
-            [
-                'schedule' => 'Lun/Mie/Vie 18:00',
-                'category_year' => 2010,
-            ]
+            ['schedule' => 'Lun/Mie/Vie 18:00']
+        );
+        $catA2010 = Category::firstOrCreate(
+            ['group_id' => $groupA->id, 'category_year' => 2010]
         );
 
         $groupB = Group::updateOrCreate(
             ['name' => 'Tira 2'],
-            [
-                'schedule' => 'Mar/Jue 17:30',
-                'category_year' => 2011,
-            ]
+            ['schedule' => 'Mar/Jue 17:30']
+        );
+        $catB2011 = Category::firstOrCreate(
+            ['group_id' => $groupB->id, 'category_year' => 2011]
         );
 
         $coach->groups()->syncWithoutDetaching([$groupA->id, $groupB->id]);
@@ -100,8 +105,7 @@ class DatabaseSeeder extends Seeder
             'nombre' => 'Juan',
             'apellido' => 'Perez',
             'numero_socio' => '1001',
-            'category_year' => $groupA->category_year,
-            'group_id' => $groupA->id,
+            'category_id' => $catA2010->id,
             'medical_check' => true,
             'imagen_compromiso' => true,
             'registered' => true,
@@ -117,8 +121,7 @@ class DatabaseSeeder extends Seeder
             'nombre' => 'Lucas',
             'apellido' => 'Gomez',
             'numero_socio' => '1002',
-            'category_year' => $groupA->category_year,
-            'group_id' => $groupA->id,
+            'category_id' => $catA2010->id,
             'medical_check' => false,
             'imagen_compromiso' => false,
             'registered' => true,
@@ -134,8 +137,7 @@ class DatabaseSeeder extends Seeder
             'nombre' => 'Mateo',
             'apellido' => 'Diaz',
             'numero_socio' => '1003',
-            'category_year' => $groupB->category_year,
-            'group_id' => $groupB->id,
+            'category_id' => $catB2011->id,
             'medical_check' => true,
             'imagen_compromiso' => true,
             'registered' => false,

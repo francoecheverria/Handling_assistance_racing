@@ -65,6 +65,26 @@ function formatNowTime(date = new Date()) {
     return `${hours}:${minutes}`;
 }
 
+function groupRecordsByCategory(records) {
+    const byCategory = new Map();
+    (records || []).forEach((record) => {
+        const year = record.player?.category?.category_year;
+        const key = year != null ? year : 'sin_categoria';
+        if (!byCategory.has(key)) byCategory.set(key, []);
+        byCategory.get(key).push(record);
+    });
+    const keys = [...byCategory.keys()].sort((a, b) => {
+        if (a === 'sin_categoria') return 1;
+        if (b === 'sin_categoria') return -1;
+        return Number(a) - Number(b);
+    });
+    return keys.map((key) => ({
+        key,
+        label: key === 'sin_categoria' ? 'Sin categoría' : `Categoría ${key}`,
+        records: byCategory.get(key),
+    }));
+}
+
 function timeToMinutes(time = '') {
     const parts = time.split(':');
     if (parts.length !== 2) return null;
@@ -319,251 +339,248 @@ export default function Dashboard({ groups = [] }) {
         <AuthenticatedLayout
             header={
                 <h2 className="text-xl font-semibold leading-tight text-brand-dark">
-                    Inicio
+                    <span className="inline-flex items-center gap-2">
+                        <FaCalendarCheck className="h-4 w-4 text-brand-primary" />
+                        Inicio
+                    </span>
                 </h2>
             }
         >
             <Head title="Dashboard" />
 
-            <div className="py-12">
-                <div className="mx-auto grid max-w-7xl gap-6 sm:px-6 lg:grid-cols-2 lg:px-8">
-                    <div className="overflow-hidden bg-brand-white shadow-sm sm:rounded-lg lg:col-span-2">
-                        <div className="p-6 text-brand-dark">
-                            <h3 className="mb-2 text-lg font-semibold">
-                                <span className="inline-flex items-center gap-2">
-                                    <FaCalendarCheck className="h-4 w-4 text-brand-primary" />
-                                    Fichaje de Asistencia
-                                </span>
+            <div className="py-8 sm:py-12">
+                <div className="mx-auto max-w-6xl space-y-8 px-4 sm:px-6 lg:px-8">
+                    {/* Resumen */}
+                    <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-brand-light/40 bg-gradient-to-br from-brand-light/15 to-brand-white p-6 shadow-sm">
+                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-brand-primary/10">
+                            <FaCalendarCheck className="h-7 w-7 text-brand-primary" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-semibold text-brand-dark">
+                                Fichaje de asistencia
                             </h3>
-                            <p className="text-sm text-brand-dark/80">
-                                Muestra la tira actual del día y su lista de alumnos
-                                para marcar presente/ausente.
+                            <p className="mt-0.5 text-sm text-brand-dark/70">
+                                {todayGroups.length === 0
+                                    ? 'No hay tiras programadas para hoy.'
+                                    : `${todayGroups.length} tira${todayGroups.length !== 1 ? 's' : ''} hoy${activeTodayGroup ? ` · ${activeTodayGroup.name}` : ''}`}
                             </p>
+                        </div>
+                    </div>
 
-                            {todayGroups.length === 0 ? (
-                                <p className="mt-4 rounded-md border border-brand-light/40 p-3 text-sm text-brand-dark/80">
-                                    No tienes tiras programadas para hoy.
-                                </p>
-                            ) : (
-                                <>
-                                    <div className="mt-4 flex items-center gap-3">
+                    {todayGroups.length === 0 ? (
+                        <section className="overflow-hidden rounded-2xl border border-brand-light/40 bg-brand-white p-12 text-center shadow-sm">
+                            <FaCalendarCheck className="mx-auto h-12 w-12 text-brand-light" />
+                            <p className="mt-4 text-brand-dark">
+                                No tienes tiras programadas para hoy.
+                            </p>
+                            <p className="mt-1 text-sm text-brand-dark/70">
+                                Revisá el calendario para ver tus tiras por día.
+                            </p>
+                        </section>
+                    ) : (
+                        <section className="overflow-hidden rounded-2xl border border-brand-light/40 bg-brand-white shadow-sm">
+                            {/* Encabezado tira actual */}
+                            <div className="border-b border-brand-light/30 bg-brand-light/5">
+                                <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+                                    <div className="flex min-w-0 flex-1 items-center gap-4">
+                                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border-2 border-brand-primary/30 bg-brand-primary/10">
+                                            <FaCalendarCheck className="h-6 w-6 text-brand-primary" />
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <h3 className="text-xl font-bold text-brand-dark">
+                                                    {activeTodayGroup?.name}
+                                                </h3>
+                                                <span className="inline-flex items-center rounded-full bg-brand-primary/15 px-2.5 py-0.5 text-xs font-semibold text-brand-primary">
+                                                    Tira actual
+                                                </span>
+                                            </div>
+                                            <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-brand-dark/70">
+                                                <span>
+                                                    Horario:{' '}
+                                                    {activeTodayGroup?.schedule || 'Sin definir'}
+                                                </span>
+                                                {scheduledAt && (
+                                                    <span>
+                                                        Sesión:{' '}
+                                                        {new Date(scheduledAt).toLocaleString('es-AR')}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex shrink-0 gap-2">
                                         <button
                                             type="button"
-                                            className="rounded border border-brand-light/50 px-3 py-2 text-sm text-brand-dark hover:bg-brand-light/15"
+                                            className="rounded-lg border border-brand-light/50 px-3 py-2 text-sm font-medium text-brand-dark hover:bg-brand-light/15"
                                             onClick={() =>
                                                 setActiveTodayGroupIndex((prev) =>
-                                                    prev === 0
-                                                        ? todayGroups.length - 1
-                                                        : prev - 1,
+                                                    prev === 0 ? todayGroups.length - 1 : prev - 1,
                                                 )
                                             }
                                         >
                                             <span className="inline-flex items-center gap-2">
                                                 <FaArrowLeft className="h-3.5 w-3.5" />
-                                                <span className="hidden sm:inline">
-                                                    Anterior
-                                                </span>
+                                                Anterior
                                             </span>
                                         </button>
-                                        <div className="flex-1 rounded-lg border border-brand-light/40 p-3">
-                                            <p className="font-semibold">
-                                                {activeTodayGroup?.name}
-                                            </p>
-                                            <p className="text-sm text-brand-dark/80">
-                                                Horario:{' '}
-                                                {activeTodayGroup?.schedule ||
-                                                    'Sin definir'}
-                                            </p>
-                                        </div>
                                         <button
                                             type="button"
-                                            className="rounded border border-brand-light/50 px-3 py-2 text-sm text-brand-dark hover:bg-brand-light/15"
+                                            className="rounded-lg border border-brand-light/50 px-3 py-2 text-sm font-medium text-brand-dark hover:bg-brand-light/15"
                                             onClick={() =>
                                                 setActiveTodayGroupIndex((prev) =>
-                                                    prev === todayGroups.length - 1
-                                                        ? 0
-                                                        : prev + 1,
+                                                    prev === todayGroups.length - 1 ? 0 : prev + 1,
                                                 )
                                             }
                                         >
                                             <span className="inline-flex items-center gap-2">
-                                                <span className="hidden sm:inline">
-                                                    Siguiente
-                                                </span>
+                                                Siguiente
                                                 <FaArrowRight className="h-3.5 w-3.5" />
                                             </span>
                                         </button>
                                     </div>
+                                </div>
+                            </div>
 
-                                    <div className="mt-4 rounded border border-brand-light/40 bg-brand-light/10 px-3 py-2 text-sm text-brand-dark/80">
-                                        Sesión cargada automáticamente para:{' '}
-                                        {scheduledAt
-                                            ? new Date(scheduledAt).toLocaleString(
-                                                  'es-AR',
-                                              )
-                                            : 'sin horario'}
-                                    </div>
+                            <div className="p-5">
+                                {attendanceMessage && (
+                                    <p className="mb-3 text-sm text-green-700">{attendanceMessage}</p>
+                                )}
+                                {attendanceError && (
+                                    <p className="mb-3 text-sm text-red-600">{attendanceError}</p>
+                                )}
+                                {isOpeningSession && (
+                                    <p className="mb-3 text-sm text-brand-dark/80">
+                                        Cargando alumnos de la tira...
+                                    </p>
+                                )}
 
-                                    {attendanceMessage && (
-                                        <p className="mt-3 text-sm text-green-700">
-                                            {attendanceMessage}
-                                        </p>
-                                    )}
-                                    {attendanceError && (
-                                        <p className="mt-3 text-sm text-red-600">
-                                            {attendanceError}
-                                        </p>
-                                    )}
-                                    {isOpeningSession && (
-                                        <p className="mt-3 text-sm text-brand-dark/80">
-                                            Cargando alumnos de la tira...
-                                        </p>
-                                    )}
-
-                                    {attendanceSession && (
-                                        <div className="mt-5 space-y-3">
-                                            <h4 className="font-semibold">
-                                                Alumnos de {attendanceSession.group?.name}
-                                            </h4>
-                                            <div className="space-y-3 md:hidden">
-                                                {attendanceRecords.map((record) => (
-                                                    <div
-                                                        key={record.player_id}
-                                                        className="rounded-xl border border-brand-light/40 p-3"
-                                                    >
-                                                        <p className="mb-3 font-semibold">
-                                                            {record.player?.full_name}
-                                                        </p>
-                                                        <div className="grid grid-cols-3 gap-2">
-                                                            {attendanceStatusOptions.map(
-                                                                (option) => {
-                                                                    const Icon =
-                                                                        option.icon;
-                                                                    const isActive =
-                                                                        record.status ===
-                                                                        option.value;
-                                                                    return (
-                                                                        <button
-                                                                            key={
-                                                                                option.value
-                                                                            }
-                                                                            type="button"
-                                                                            className={`inline-flex items-center justify-center gap-1 rounded-lg px-2 py-2 text-xs font-semibold ${
-                                                                                isActive
-                                                                                    ? 'bg-brand-primary text-brand-white'
-                                                                                    : 'border border-brand-light/50 text-brand-dark hover:bg-brand-light/20'
-                                                                            }`}
-                                                                            onClick={() =>
-                                                                                setPlayerStatus(
-                                                                                    record.player_id,
-                                                                                    option.value,
-                                                                                )
-                                                                            }
-                                                                        >
-                                                                            <Icon className="h-3.5 w-3.5" />
-                                                                            <span>
-                                                                                {
-                                                                                    option.label
+                                {attendanceSession && (
+                                    <div className="space-y-6">
+                                        {groupRecordsByCategory(attendanceRecords).map(
+                                            ({ key, label, records: categoryRecords }) => (
+                                                <div key={key}>
+                                                    <h4 className="mb-2 text-sm font-semibold text-brand-dark">
+                                                        {label}
+                                                    </h4>
+                                                    <div className="space-y-3 md:hidden">
+                                                        {categoryRecords.map((record) => (
+                                                            <div
+                                                                key={record.player_id}
+                                                                className="rounded-xl border border-brand-light/40 p-3"
+                                                            >
+                                                                <p className="mb-3 font-semibold text-brand-dark">
+                                                                    {record.player?.full_name}
+                                                                </p>
+                                                                <div className="grid grid-cols-3 gap-2">
+                                                                    {attendanceStatusOptions.map((option) => {
+                                                                        const Icon = option.icon;
+                                                                        const isActive = record.status === option.value;
+                                                                        return (
+                                                                            <button
+                                                                                key={option.value}
+                                                                                type="button"
+                                                                                className={`inline-flex items-center justify-center gap-1 rounded-lg px-2 py-2 text-xs font-semibold ${
+                                                                                    isActive
+                                                                                        ? 'bg-brand-primary text-brand-white'
+                                                                                        : 'border border-brand-light/50 text-brand-dark hover:bg-brand-light/20'
+                                                                                }`}
+                                                                                onClick={() =>
+                                                                                    setPlayerStatus(record.player_id, option.value)
                                                                                 }
-                                                                            </span>
-                                                                        </button>
-                                                                    );
-                                                                },
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-
-                                            <div className="hidden overflow-x-auto rounded-xl border border-brand-light/40 md:block">
-                                                <table className="min-w-full text-sm">
-                                                    <thead className="bg-brand-light/20">
-                                                        <tr>
-                                                            <th className="border border-brand-light/40 px-3 py-2 text-left">
-                                                                Alumno
-                                                            </th>
-                                                            <th className="border border-brand-light/40 px-3 py-2 text-left">
-                                                                Estado
-                                                            </th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {attendanceRecords.map((record) => (
-                                                            <tr key={record.player_id}>
-                                                                <td className="border border-brand-light/40 px-3 py-2">
-                                                                    {
-                                                                        record.player
-                                                                            ?.full_name
-                                                                    }
-                                                                </td>
-                                                                <td className="border border-brand-light/40 px-3 py-2">
-                                                                    <div className="flex flex-wrap gap-2">
-                                                                        {attendanceStatusOptions.map(
-                                                                            (option) => {
-                                                                                const Icon =
-                                                                                    option.icon;
-                                                                                const isActive =
-                                                                                    record.status ===
-                                                                                    option.value;
-                                                                                return (
-                                                                                    <button
-                                                                                        key={
-                                                                                            option.value
-                                                                                        }
-                                                                                        type="button"
-                                                                                        className={`inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-semibold ${
-                                                                                            isActive
-                                                                                                ? 'bg-brand-primary text-brand-white'
-                                                                                                : 'border border-brand-light/50 text-brand-dark hover:bg-brand-light/20'
-                                                                                        }`}
-                                                                                        onClick={() =>
-                                                                                            setPlayerStatus(
-                                                                                                record.player_id,
-                                                                                                option.value,
-                                                                                            )
-                                                                                        }
-                                                                                    >
-                                                                                        <Icon className="h-3.5 w-3.5" />
-                                                                                        <span>
-                                                                                            {
-                                                                                                option.label
-                                                                                            }
-                                                                                        </span>
-                                                                                    </button>
-                                                                                );
-                                                                            },
-                                                                        )}
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
+                                                                            >
+                                                                                <Icon className="h-3.5 w-3.5" />
+                                                                                <span>{option.label}</span>
+                                                                            </button>
+                                                                        );
+                                                                    })}
+                                                                </div>
+                                                            </div>
                                                         ))}
-                                                    </tbody>
-                                                </table>
-                                            </div>
+                                                    </div>
 
-                                            <button
-                                                type="button"
-                                                className="w-full rounded bg-brand-primary px-4 py-3 font-semibold text-brand-white hover:bg-brand-dark disabled:opacity-60 md:w-auto md:py-2"
-                                                onClick={saveAttendance}
-                                                disabled={isSavingAttendance}
-                                            >
-                                                {isSavingAttendance
-                                                    ? 'Guardando...'
-                                                    : 'Guardar asistencia'}
-                                            </button>
-                                        </div>
-                                    )}
-                                </>
-                            )}
-                        </div>
-                    </div>
+                                                    <div className="hidden overflow-hidden rounded-xl border border-brand-light/30 md:block">
+                                                        <table className="min-w-full text-sm">
+                                                            <thead>
+                                                                <tr className="bg-brand-light/15">
+                                                                    <th className="px-4 py-3 text-left font-semibold text-brand-dark">
+                                                                        Alumno
+                                                                    </th>
+                                                                    <th className="px-4 py-3 text-left font-semibold text-brand-dark">
+                                                                        Estado
+                                                                    </th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody className="divide-y divide-brand-light/20">
+                                                                {categoryRecords.map((record, idx) => (
+                                                                    <tr
+                                                                        key={record.player_id}
+                                                                        className={
+                                                                            idx % 2 === 0
+                                                                                ? 'bg-brand-white'
+                                                                                : 'bg-brand-light/5'
+                                                                        }
+                                                                    >
+                                                                        <td className="px-4 py-3 font-medium text-brand-dark">
+                                                                            {record.player?.full_name}
+                                                                        </td>
+                                                                        <td className="px-4 py-3">
+                                                                            <div className="flex flex-wrap gap-2">
+                                                                                {attendanceStatusOptions.map((option) => {
+                                                                                    const Icon = option.icon;
+                                                                                    const isActive = record.status === option.value;
+                                                                                    return (
+                                                                                        <button
+                                                                                            key={option.value}
+                                                                                            type="button"
+                                                                                            className={`inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-semibold ${
+                                                                                                isActive
+                                                                                                    ? 'bg-brand-primary text-brand-white'
+                                                                                                    : 'border border-brand-light/50 text-brand-dark hover:bg-brand-light/20'
+                                                                                            }`}
+                                                                                            onClick={() =>
+                                                                                                setPlayerStatus(record.player_id, option.value)
+                                                                                            }
+                                                                                        >
+                                                                                            <Icon className="h-3.5 w-3.5" />
+                                                                                            <span>{option.label}</span>
+                                                                                        </button>
+                                                                                    );
+                                                                                })}
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            ),
+                                        )}
 
-                    <div className="overflow-hidden bg-brand-white shadow-sm sm:rounded-lg">
-                        <div className="p-6 text-brand-dark">
-                            <h3 className="mb-4 text-lg font-semibold">
+                                        <button
+                                            type="button"
+                                            className="w-full rounded-lg bg-brand-primary px-4 py-3 font-semibold text-brand-white hover:bg-brand-dark disabled:opacity-60 md:w-auto md:py-2"
+                                            onClick={saveAttendance}
+                                            disabled={isSavingAttendance}
+                                        >
+                                            {isSavingAttendance ? 'Guardando...' : 'Guardar asistencia'}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </section>
+                    )}
+
+                    <div className="grid gap-8 lg:grid-cols-2">
+                    <div className="overflow-hidden rounded-2xl border border-brand-light/40 bg-brand-white shadow-sm">
+                        <div className="border-b border-brand-light/30 bg-brand-light/5 px-5 py-4">
+                            <h3 className="text-base font-semibold text-brand-dark">
                                 Calendario de tiras
                             </h3>
-                            <div className="rounded-lg border border-brand-light/40 p-3">
+                        </div>
+                        <div className="p-5 text-brand-dark">
+                            <div className="rounded-xl border border-brand-light/40 p-3">
                                 <Calendar
                                     className="calendar-brand"
                                     onChange={setSelectedDate}
@@ -607,19 +624,21 @@ export default function Dashboard({ groups = [] }) {
                                     }}
                                 />
                             </div>
-                            <p className="mt-3 text-sm text-brand-dark/80">
+                            <p className="mt-3 text-sm text-brand-dark/70">
                                 Los días resaltados indican que tienes al menos una
                                 tira programada.
                             </p>
                         </div>
                     </div>
 
-                    <div className="overflow-hidden bg-brand-white shadow-sm sm:rounded-lg">
-                        <div className="p-6 text-brand-dark">
-                            <h3 className="text-lg font-semibold">
+                    <div className="overflow-hidden rounded-2xl border border-brand-light/40 bg-brand-white shadow-sm">
+                        <div className="border-b border-brand-light/30 bg-brand-light/5 px-5 py-4">
+                            <h3 className="text-base font-semibold text-brand-dark">
                                 Tiras del día seleccionado
                             </h3>
-                            <p className="mt-1 text-sm text-brand-dark/80">
+                        </div>
+                        <div className="p-5 text-brand-dark">
+                            <p className="text-sm text-brand-dark/70">
                                 {selectedDate.toLocaleDateString('es-AR', {
                                     weekday: 'long',
                                     year: 'numeric',
@@ -629,7 +648,7 @@ export default function Dashboard({ groups = [] }) {
                             </p>
 
                             {groupsForSelectedDate.length === 0 ? (
-                                <p className="mt-4 rounded-md border border-brand-light/40 p-3 text-sm text-brand-dark/80">
+                                <p className="mt-4 rounded-xl border border-dashed border-brand-light/50 bg-brand-light/5 py-8 text-center text-sm text-brand-dark/80">
                                     No hay tiras para este día.
                                 </p>
                             ) : (
@@ -637,12 +656,12 @@ export default function Dashboard({ groups = [] }) {
                                     {groupsForSelectedDate.map((group) => (
                                         <div
                                             key={group.id}
-                                            className="rounded-lg border border-brand-light/40 p-3"
+                                            className="rounded-xl border border-brand-light/40 p-3"
                                         >
                                             <p className="font-semibold text-brand-dark">
                                                 {group.name}
                                             </p>
-                                            <p className="text-sm text-brand-dark/80">
+                                            <p className="text-sm text-brand-dark/70">
                                                 Horario: {group.schedule || 'Sin definir'}
                                             </p>
                                         </div>
@@ -651,17 +670,17 @@ export default function Dashboard({ groups = [] }) {
                             )}
 
                             <div className="mt-6">
-                                <h4 className="font-semibold">Todas mis tiras</h4>
-                                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-brand-dark/80">
+                                <h4 className="font-semibold text-brand-dark">Todas mis tiras</h4>
+                                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-brand-dark/70">
                                     {groups.map((group) => (
                                         <li key={group.id}>
-                                            {group.name} -{' '}
-                                            {group.schedule || 'Sin horario'}
+                                            {group.name} — {group.schedule || 'Sin horario'}
                                         </li>
                                     ))}
                                 </ul>
                             </div>
                         </div>
+                    </div>
                     </div>
                 </div>
             </div>

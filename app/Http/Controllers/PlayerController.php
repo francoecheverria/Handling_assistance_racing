@@ -15,6 +15,7 @@ class PlayerController extends Controller
         $this->ensureUserCanManageGroup($request->user(), $group, 'crear jugadores');
 
         $validated = $request->validate([
+            'category_id' => ['required', 'integer', 'exists:categories,id'],
             'nombre' => ['required', 'string', 'max:255'],
             'apellido' => ['nullable', 'string', 'max:255'],
             'dni' => ['required', 'string', 'max:50', 'unique:players,dni'],
@@ -29,8 +30,8 @@ class PlayerController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
-        $validated['category_year'] = $group->category_year;
-        $group->players()->create($validated);
+        $this->ensureCategoryBelongsToGroup($group, (int) $validated['category_id']);
+        Player::create($validated);
 
         return back();
     }
@@ -41,6 +42,7 @@ class PlayerController extends Controller
         $this->ensureUserCanManageGroup($request->user(), $group, 'editar jugadores');
 
         $validated = $request->validate([
+            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
             'nombre' => ['required', 'string', 'max:255'],
             'apellido' => ['nullable', 'string', 'max:255'],
             'dni' => ['required', 'string', 'max:50', 'unique:players,dni,'.$player->id],
@@ -55,7 +57,11 @@ class PlayerController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
-        $validated['category_year'] = $group->category_year;
+        if (isset($validated['category_id'])) {
+            $this->ensureCategoryBelongsToGroup($group, (int) $validated['category_id']);
+        } else {
+            $validated['category_id'] = $player->category_id;
+        }
         $player->update($validated);
 
         return back();
@@ -73,7 +79,14 @@ class PlayerController extends Controller
 
     private function ensurePlayerBelongsToGroup(Group $group, Player $player): void
     {
-        abort_unless((int) $player->group_id === (int) $group->id, 404);
+        $player->load('category');
+        abort_unless($player->category && (int) $player->category->group_id === (int) $group->id, 404);
+    }
+
+    private function ensureCategoryBelongsToGroup(Group $group, int $categoryId): void
+    {
+        $category = \App\Models\Category::query()->find($categoryId);
+        abort_unless($category && (int) $category->group_id === (int) $group->id, 404);
     }
 
     private function ensureUserCanManageGroup(User $user, Group $group, string $permission): void

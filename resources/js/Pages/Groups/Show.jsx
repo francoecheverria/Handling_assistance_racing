@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { FaEdit, FaPlusCircle, FaSave, FaTrashAlt, FaUsers } from 'react-icons/fa';
 
 const emptyPlayer = {
+    category_id: '',
     nombre: '',
     apellido: '',
     dni: '',
@@ -21,7 +22,7 @@ const emptyPlayer = {
     notes: '',
 };
 
-export default function GroupsShow({ group, can }) {
+export default function GroupsShow({ group, coaches = [], can }) {
     const [editingPlayerId, setEditingPlayerId] = useState(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditGroupModal, setShowEditGroupModal] = useState(false);
@@ -32,7 +33,10 @@ export default function GroupsShow({ group, can }) {
         name: group?.name ?? '',
         schedule: group?.schedule ?? '',
         description: group?.description ?? '',
-        category_year: group?.category_year ?? '',
+        categories: (group?.categories || []).map((c) => c.category_year).filter(Boolean).length
+            ? (group?.categories || []).map((c) => c.category_year)
+            : [new Date().getFullYear()],
+        coach_ids: (group?.coaches || []).map((c) => c.id),
     });
 
     useEffect(() => {
@@ -41,7 +45,10 @@ export default function GroupsShow({ group, can }) {
                 name: group?.name ?? '',
                 schedule: group?.schedule ?? '',
                 description: group?.description ?? '',
-                category_year: group?.category_year ?? '',
+                categories: (group?.categories || []).map((c) => c.category_year).filter(Boolean).length
+                    ? (group?.categories || []).map((c) => c.category_year)
+                    : [new Date().getFullYear()],
+                coach_ids: (group?.coaches || []).map((c) => c.id),
             });
             setShowEditGroupModal(true);
         }
@@ -52,14 +59,30 @@ export default function GroupsShow({ group, can }) {
             name: group?.name ?? '',
             schedule: group?.schedule ?? '',
             description: group?.description ?? '',
-            category_year: group?.category_year ?? '',
+            categories: (group?.categories || []).map((c) => c.category_year).filter(Boolean).length
+                ? (group?.categories || []).map((c) => c.category_year)
+                : [new Date().getFullYear()],
+            coach_ids: (group?.coaches || []).map((c) => c.id),
         });
         setShowEditGroupModal(true);
     };
 
+    const toggleCoachInEditGroup = (coachId) => {
+        const ids = editGroupForm.data.coach_ids.includes(coachId)
+            ? editGroupForm.data.coach_ids.filter((id) => id !== coachId)
+            : [...editGroupForm.data.coach_ids, coachId];
+        editGroupForm.setData('coach_ids', ids);
+    };
+
     const onEditGroup = (e) => {
         e.preventDefault();
-        editGroupForm.put(route('groups.update', group.id), {
+        const payload = {
+            ...editGroupForm.data,
+            categories: editGroupForm.data.categories.filter((y) => y !== '' && y != null).map(Number),
+            coach_ids: editGroupForm.data.coach_ids || [],
+        };
+        if (payload.categories.length === 0) payload.categories = [new Date().getFullYear()];
+        router.put(route('groups.update', group.id), payload, {
             preserveScroll: true,
             onSuccess: () => {
                 setShowEditGroupModal(false);
@@ -90,6 +113,7 @@ export default function GroupsShow({ group, can }) {
     const startEditing = (player) => {
         setEditingPlayerId(player.id);
         updateForm.setData({
+            category_id: player.category_id ?? '',
             nombre: player.nombre || '',
             apellido: player.apellido || '',
             dni: player.dni || '',
@@ -176,8 +200,11 @@ export default function GroupsShow({ group, can }) {
                                     {group.schedule || 'Sin definir'}
                                 </p>
                                 <p>
-                                    <span className="font-semibold">Categoría:</span>{' '}
-                                    {group.category_year || 'Sin definir'}
+                                    <span className="font-semibold">Categorías:</span>{' '}
+                                    {(group.categories || [])
+                                        .map((c) => c.category_year)
+                                        .filter(Boolean)
+                                        .join(', ') || 'Sin definir'}
                                 </p>
                                 {group.description && (
                                     <p>
@@ -224,95 +251,106 @@ export default function GroupsShow({ group, can }) {
                                 )}
                             </div>
 
-                            {group.players.length === 0 ? (
+                            {(group.categories || []).every((c) => (c.players || []).length === 0) ? (
                                 <p className="text-brand-dark/80">
                                     No hay jugadores cargados.
                                 </p>
                             ) : (
-                                <div className="overflow-x-auto rounded-xl border border-brand-light/40">
-                                    <table className="min-w-full text-sm">
-                                        <thead className="bg-brand-light/20">
-                                            <tr>
-                                                <th className="border px-3 py-2 text-left">
-                                                    Nombre
-                                                </th>
-                                                <th className="border px-3 py-2 text-left">
-                                                    DNI
-                                                </th>
-                                                <th className="border px-3 py-2 text-left">
-                                                    Socio
-                                                </th>
-                                                <th className="border px-3 py-2 text-left">
-                                                    Ficha médica
-                                                </th>
-                                                <th className="border px-3 py-2 text-left">
-                                                    Fichaje
-                                                </th>
-                                                <th className="border px-3 py-2 text-left">
-                                                    Acciones
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {group.players.map((player) => (
-                                                <tr key={player.id}>
-                                                    <td className="border px-3 py-2">
-                                                        {player.full_name}
-                                                    </td>
-                                                    <td className="border px-3 py-2">
-                                                        {player.dni}
-                                                    </td>
-                                                    <td className="border px-3 py-2">
-                                                        {player.numero_socio || '-'}
-                                                    </td>
-                                                    <td className="border px-3 py-2">
-                                                        {player.medical_check
-                                                            ? 'OK'
-                                                            : 'Pendiente'}
-                                                    </td>
-                                                    <td className="border px-3 py-2">
-                                                        {player.registered
-                                                            ? 'OK'
-                                                            : 'Pendiente'}
-                                                    </td>
-                                                    <td className="border px-3 py-2">
-                                                        <div className="flex gap-3">
-                                                            {can.editPlayer && (
-                                                                <button
-                                                                    className="text-brand-primary hover:underline"
-                                                                    onClick={() =>
-                                                                        startEditing(
-                                                                            player,
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <span className="inline-flex items-center gap-1">
-                                                                        <FaEdit className="h-3.5 w-3.5" />
-                                                                        Editar
-                                                                    </span>
-                                                                </button>
-                                                            )}
-                                                            {can.deletePlayer && (
-                                                                <button
-                                                                    className="text-red-600 hover:underline"
-                                                                    onClick={() =>
-                                                                        onDeletePlayer(
-                                                                            player.id,
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <span className="inline-flex items-center gap-1">
-                                                                        <FaTrashAlt className="h-3.5 w-3.5" />
-                                                                        Eliminar
-                                                                    </span>
-                                                                </button>
-                                                            )}
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                                <div className="space-y-6">
+                                    {(group.categories || []).map((category) => (
+                                        <div key={category.id}>
+                                            <h4 className="mb-2 text-sm font-semibold text-brand-dark">
+                                                Categoría {category.category_year}
+                                            </h4>
+                                            <div className="overflow-x-auto rounded-xl border border-brand-light/40">
+                                                <table className="min-w-full text-sm">
+                                                    <thead className="bg-brand-light/20">
+                                                        <tr>
+                                                            <th className="border px-3 py-2 text-left">
+                                                                Nombre
+                                                            </th>
+                                                            <th className="border px-3 py-2 text-left">
+                                                                DNI
+                                                            </th>
+                                                            <th className="border px-3 py-2 text-left">
+                                                                Socio
+                                                            </th>
+                                                            <th className="border px-3 py-2 text-left">
+                                                                Ficha médica
+                                                            </th>
+                                                            <th className="border px-3 py-2 text-left">
+                                                                Fichaje
+                                                            </th>
+                                                            <th className="border px-3 py-2 text-left">
+                                                                Acciones
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {(category.players || []).map((player) => (
+                                                            <tr key={player.id}>
+                                                                <td className="border px-3 py-2">
+                                                                    {player.full_name}
+                                                                </td>
+                                                                <td className="border px-3 py-2">
+                                                                    {player.dni}
+                                                                </td>
+                                                                <td className="border px-3 py-2">
+                                                                    {player.numero_socio || '-'}
+                                                                </td>
+                                                                <td className="border px-3 py-2">
+                                                                    {player.medical_check
+                                                                        ? 'OK'
+                                                                        : 'Pendiente'}
+                                                                </td>
+                                                                <td className="border px-3 py-2">
+                                                                    {player.registered
+                                                                        ? 'OK'
+                                                                        : 'Pendiente'}
+                                                                </td>
+                                                                <td className="border px-3 py-2">
+                                                                    <div className="flex gap-3">
+                                                                        {can.editPlayer && (
+                                                                            <button
+                                                                                type="button"
+                                                                                className="text-brand-primary hover:underline"
+                                                                                onClick={() =>
+                                                                                    startEditing(
+                                                                                        player,
+                                                                                    )
+                                                                                }
+                                                                            >
+                                                                                <span className="inline-flex items-center gap-1">
+                                                                                    <FaEdit className="h-3.5 w-3.5" />
+                                                                                    Editar
+                                                                                </span>
+                                                                            </button>
+                                                                        )}
+                                                                        {can.deletePlayer && (
+                                                                            <button
+                                                                                type="button"
+                                                                                className="text-red-600 hover:underline"
+                                                                                onClick={() =>
+                                                                                    onDeletePlayer(
+                                                                                        player.id,
+                                                                                    )
+                                                                                }
+                                                                            >
+                                                                                <span className="inline-flex items-center gap-1">
+                                                                                    <FaTrashAlt className="h-3.5 w-3.5" />
+                                                                                    Eliminar
+                                                                                </span>
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             )}
                         </div>
@@ -328,6 +366,31 @@ export default function GroupsShow({ group, can }) {
                             Editar jugador
                         </h3>
                         <form onSubmit={onUpdatePlayer} className="grid gap-3 md:grid-cols-2">
+                            <div className="md:col-span-2">
+                                <label className="mb-1 block text-sm font-medium text-brand-dark">
+                                    Categoría
+                                </label>
+                                <select
+                                    className="w-full rounded border-brand-light/50 bg-brand-white text-brand-dark"
+                                    value={updateForm.data.category_id}
+                                    onChange={(e) =>
+                                        updateForm.setData(
+                                            'category_id',
+                                            e.target.value ? Number(e.target.value) : '',
+                                        )
+                                    }
+                                >
+                                    <option value="">
+                                        Seleccionar categoría
+                                    </option>
+                                    {(group.categories || []).map((cat) => (
+                                        <option key={cat.id} value={cat.id}>
+                                            {cat.category_year}
+                                        </option>
+                                    ))}
+                                </select>
+                                <InputError message={updateForm.errors.category_id} className="mt-1" />
+                            </div>
                             <input
                                 className="rounded border-brand-light/50 bg-brand-white text-brand-dark"
                                 placeholder="Nombre *"
@@ -475,6 +538,31 @@ export default function GroupsShow({ group, can }) {
                             onSubmit={onCreatePlayer}
                             className="grid gap-3 md:grid-cols-2"
                         >
+                            <div className="md:col-span-2">
+                                <label className="mb-1 block text-sm font-medium text-brand-dark">
+                                    Categoría *
+                                </label>
+                                <select
+                                    className="w-full rounded border-brand-light/50 bg-brand-white text-brand-dark"
+                                    value={createForm.data.category_id}
+                                    onChange={(e) =>
+                                        createForm.setData(
+                                            'category_id',
+                                            e.target.value ? Number(e.target.value) : '',
+                                        )
+                                    }
+                                >
+                                    <option value="">
+                                        Seleccionar categoría
+                                    </option>
+                                    {(group.categories || []).map((cat) => (
+                                        <option key={cat.id} value={cat.id}>
+                                            {cat.category_year}
+                                        </option>
+                                    ))}
+                                </select>
+                                <InputError message={createForm.errors.category_id} className="mt-1" />
+                            </div>
                             <input
                                 className="rounded border-brand-light/50 bg-brand-white text-brand-dark"
                                 placeholder="Nombre *"
@@ -667,24 +755,72 @@ export default function GroupsShow({ group, can }) {
                         </div>
                         <div>
                             <label className="mb-1 block text-sm font-medium text-brand-dark">
-                                Categoría (año) *
+                                Categorías (años) *
                             </label>
-                            <input
-                                type="number"
-                                min="1990"
-                                max="2100"
-                                className="w-full rounded border-brand-light/50 bg-brand-white text-brand-dark"
-                                placeholder="Ej: 2010"
-                                value={editGroupForm.data.category_year}
-                                onChange={(e) =>
-                                    editGroupForm.setData(
-                                        'category_year',
-                                        e.target.value,
-                                    )
+                            {(editGroupForm.data.categories || []).map((year, idx) => (
+                                <div key={idx} className="mb-2 flex gap-2">
+                                    <input
+                                        type="number"
+                                        min="1990"
+                                        max="2100"
+                                        className="w-28 rounded border-brand-light/50 bg-brand-white text-brand-dark"
+                                        placeholder="Ej: 2010"
+                                        value={year === '' ? '' : year}
+                                        onChange={(e) => {
+                                            const next = [...(editGroupForm.data.categories || [])];
+                                            next[idx] = e.target.value === '' ? '' : Number(e.target.value);
+                                            editGroupForm.setData('categories', next);
+                                        }}
+                                    />
+                                    <button
+                                        type="button"
+                                        className="rounded border border-red-300 px-2 text-red-600 hover:bg-red-50"
+                                        onClick={() => {
+                                            const next = (editGroupForm.data.categories || []).filter((_, i) => i !== idx);
+                                            if (next.length === 0) next.push(new Date().getFullYear());
+                                            editGroupForm.setData('categories', next);
+                                        }}
+                                    >
+                                        Quitar
+                                    </button>
+                                </div>
+                            ))}
+                            <button
+                                type="button"
+                                className="mt-1 text-sm text-brand-primary hover:underline"
+                                onClick={() =>
+                                    editGroupForm.setData('categories', [
+                                        ...(editGroupForm.data.categories || []),
+                                        new Date().getFullYear(),
+                                    ])
                                 }
-                            />
-                            <InputError message={editGroupForm.errors.category_year} className="mt-1" />
+                            >
+                                + Añadir categoría
+                            </button>
+                            <InputError message={editGroupForm.errors.categories} className="mt-1" />
                         </div>
+                        {coaches.length > 0 && (
+                            <div className="rounded border border-brand-light/40 bg-brand-light/10 p-3">
+                                <p className="mb-2 text-sm font-medium text-brand-dark">
+                                    Profesores asignados
+                                </p>
+                                <div className="flex flex-wrap gap-3">
+                                    {coaches.map((coach) => (
+                                        <label
+                                            key={coach.id}
+                                            className="flex cursor-pointer items-center gap-2 text-sm text-brand-dark"
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={(editGroupForm.data.coach_ids || []).includes(coach.id)}
+                                                onChange={() => toggleCoachInEditGroup(coach.id)}
+                                            />
+                                            {coach.name}
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                         <div className="flex gap-2">
                             <button
                                 type="submit"

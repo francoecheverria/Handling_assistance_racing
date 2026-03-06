@@ -28,7 +28,8 @@ class AttendanceController extends Controller
             ->with([
                 'group:id,name,schedule',
                 'takenByUser:id,name',
-                'records.player:id,nombre,apellido,dni,group_id',
+                'records.player:id,nombre,apellido,dni,category_id',
+                'records.player.category:id,category_year',
             ])
             ->latest('scheduled_at');
 
@@ -97,7 +98,7 @@ class AttendanceController extends Controller
             ]
         );
 
-        $players = $group->players()->select('id')->get();
+        $players = $group->players()->select('players.id')->get();
         $existingPlayerIds = $session->records()->pluck('player_id')->all();
 
         $pendingRecords = $players
@@ -119,7 +120,8 @@ class AttendanceController extends Controller
 
         $session->load([
             'group:id,name,schedule',
-            'records.player:id,nombre,apellido,dni,group_id',
+            'records.player:id,nombre,apellido,dni,category_id',
+            'records.player.category:id,category_year',
         ]);
 
         return response()->json([

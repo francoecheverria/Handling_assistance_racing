@@ -41,6 +41,26 @@ function StatusBadge({ status }) {
     );
 }
 
+function groupRecordsByCategory(records) {
+    const byCategory = new Map();
+    (records || []).forEach((record) => {
+        const year = record.player?.category?.category_year;
+        const key = year != null ? year : 'sin_categoria';
+        if (!byCategory.has(key)) byCategory.set(key, []);
+        byCategory.get(key).push(record);
+    });
+    const keys = [...byCategory.keys()].sort((a, b) => {
+        if (a === 'sin_categoria') return 1;
+        if (b === 'sin_categoria') return -1;
+        return Number(a) - Number(b);
+    });
+    return keys.map((key) => ({
+        key,
+        label: key === 'sin_categoria' ? 'Sin categoría' : `Categoría ${key}`,
+        records: byCategory.get(key),
+    }));
+}
+
 export default function AttendancesIndex({
     sessions = [],
     groups = [],
@@ -255,8 +275,8 @@ export default function AttendancesIndex({
                                             </div>
                                         </div>
 
-                                        {/* Listado de registros */}
-                                        <div className="p-5">
+                                        {/* Listado de registros por categoría */}
+                                        <div className="p-5 space-y-6">
                                             {recordCount === 0 ? (
                                                 <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-brand-light/50 bg-brand-light/5 py-10">
                                                     <p className="text-sm font-medium text-brand-dark/80">
@@ -265,59 +285,58 @@ export default function AttendancesIndex({
                                                     </p>
                                                 </div>
                                             ) : (
-                                                <div className="overflow-hidden rounded-xl border border-brand-light/30">
-                                                    <table className="min-w-full text-sm">
-                                                        <thead>
-                                                            <tr className="bg-brand-light/15">
-                                                                <th className="px-4 py-3 text-left font-semibold text-brand-dark">
-                                                                    Jugador
-                                                                </th>
-                                                                <th className="px-4 py-3 text-left font-semibold text-brand-dark">
-                                                                    DNI
-                                                                </th>
-                                                                <th className="px-4 py-3 text-left font-semibold text-brand-dark">
-                                                                    Estado
-                                                                </th>
-                                                                <th className="px-4 py-3 text-left font-semibold text-brand-dark">
-                                                                    Observaciones
-                                                                </th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody className="divide-y divide-brand-light/20">
-                                                            {(session.records || []).map(
-                                                                (record, idx) => (
-                                                                    <tr
-                                                                        key={
-                                                                            record.id
-                                                                        }
-                                                                        className={
-                                                                            idx % 2 === 0
-                                                                                ? 'bg-brand-white'
-                                                                                : 'bg-brand-light/5'
-                                                                        }
-                                                                    >
-                                                                        <td className="px-4 py-3 font-medium text-brand-dark">
-                                                                            {record.player?.full_name ?? '-'}
-                                                                        </td>
-                                                                        <td className="px-4 py-3 text-brand-dark/80">
-                                                                            {record.player?.dni ?? '-'}
-                                                                        </td>
-                                                                        <td className="px-4 py-3">
-                                                                            <StatusBadge
-                                                                                status={
-                                                                                    record.status
-                                                                                }
-                                                                            />
-                                                                        </td>
-                                                                        <td className="px-4 py-3 text-brand-dark/80">
-                                                                            {record.notes || '-'}
-                                                                        </td>
+                                                groupRecordsByCategory(session.records).map(({ key, label, records: categoryRecords }) => (
+                                                    <div key={key}>
+                                                        <h4 className="mb-2 text-sm font-semibold text-brand-dark">
+                                                            {label}
+                                                        </h4>
+                                                        <div className="overflow-hidden rounded-xl border border-brand-light/30">
+                                                            <table className="min-w-full text-sm">
+                                                                <thead>
+                                                                    <tr className="bg-brand-light/15">
+                                                                        <th className="px-4 py-3 text-left font-semibold text-brand-dark">
+                                                                            Jugador
+                                                                        </th>
+                                                                        <th className="px-4 py-3 text-left font-semibold text-brand-dark">
+                                                                            DNI
+                                                                        </th>
+                                                                        <th className="px-4 py-3 text-left font-semibold text-brand-dark">
+                                                                            Estado
+                                                                        </th>
+                                                                        <th className="px-4 py-3 text-left font-semibold text-brand-dark">
+                                                                            Observaciones
+                                                                        </th>
                                                                     </tr>
-                                                                ),
-                                                            )}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
+                                                                </thead>
+                                                                <tbody className="divide-y divide-brand-light/20">
+                                                                    {categoryRecords.map((record, idx) => (
+                                                                        <tr
+                                                                            key={record.id}
+                                                                            className={
+                                                                                idx % 2 === 0
+                                                                                    ? 'bg-brand-white'
+                                                                                    : 'bg-brand-light/5'
+                                                                            }
+                                                                        >
+                                                                            <td className="px-4 py-3 font-medium text-brand-dark">
+                                                                                {record.player?.full_name ?? '-'}
+                                                                            </td>
+                                                                            <td className="px-4 py-3 text-brand-dark/80">
+                                                                                {record.player?.dni ?? '-'}
+                                                                            </td>
+                                                                            <td className="px-4 py-3">
+                                                                                <StatusBadge status={record.status} />
+                                                                            </td>
+                                                                            <td className="px-4 py-3 text-brand-dark/80">
+                                                                                {record.notes || '-'}
+                                                                            </td>
+                                                                        </tr>
+                                                                    ))}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                ))
                                             )}
                                         </div>
                                     </section>

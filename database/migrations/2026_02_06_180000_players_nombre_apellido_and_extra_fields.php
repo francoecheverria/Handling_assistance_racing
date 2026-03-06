@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('apellido')->nullable()->after('nombre');
             $table->string('numero_socio')->nullable()->after('dni');
             $table->date('fecha_nacimiento')->nullable()->after('numero_socio');
-            $table->boolean('imagen_compromiso')->default(false)->after('notes');
+            $table->boolean('imagen_compromiso')->default(false)->after('scholarship');
             $table->string('telefono')->nullable()->after('imagen_compromiso');
             $table->string('mail')->nullable()->after('telefono');
         });

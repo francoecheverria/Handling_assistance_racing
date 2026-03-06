@@ -10,7 +10,12 @@ import {
 
 export default function MyPlayers({ groups = [] }) {
     const totalPlayers = groups.reduce(
-        (acc, group) => acc + (group.players?.length || 0),
+        (acc, group) =>
+            acc +
+            (group.categories || []).reduce(
+                (s, cat) => s + (cat.players?.length || 0),
+                0,
+            ),
         0,
     );
 
@@ -57,7 +62,10 @@ export default function MyPlayers({ groups = [] }) {
                     ) : (
                         <div className="space-y-8">
                             {groups.map((group) => {
-                                const playerCount = group.players?.length || 0;
+                                const playerCount = (group.categories || []).reduce(
+                                    (s, cat) => s + (cat.players?.length || 0),
+                                    0,
+                                );
                                 return (
                                     <section
                                         key={group.id}
@@ -87,10 +95,12 @@ export default function MyPlayers({ groups = [] }) {
                                                                     {group.schedule}
                                                                 </span>
                                                             )}
-                                                            {group.category_year && (
+                                                            {(group.categories || []).length > 0 && (
                                                                 <span>
-                                                                    Categoría{' '}
-                                                                    {group.category_year}
+                                                                    Categorías{' '}
+                                                                    {(group.categories || [])
+                                                                        .map((c) => c.category_year)
+                                                                        .join(', ')}
                                                                 </span>
                                                             )}
                                                         </div>
@@ -108,8 +118,8 @@ export default function MyPlayers({ groups = [] }) {
                                             </div>
                                         </div>
 
-                                        {/* Listado de jugadores de esta tira */}
-                                        <div className="p-5">
+                                        {/* Listado de jugadores por categoría */}
+                                        <div className="p-5 space-y-6">
                                             {playerCount === 0 ? (
                                                 <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-brand-light/50 bg-brand-light/5 py-10">
                                                     <FaUsers className="h-10 w-10 text-brand-light" />
@@ -128,82 +138,86 @@ export default function MyPlayers({ groups = [] }) {
                                                     </Link>
                                                 </div>
                                             ) : (
-                                                <div className="overflow-hidden rounded-xl border border-brand-light/30">
-                                                    <table className="min-w-full text-sm">
-                                                        <thead>
-                                                            <tr className="bg-brand-light/15">
-                                                                <th className="px-4 py-3 text-left font-semibold text-brand-dark">
-                                                                    Jugador
-                                                                </th>
-                                                                <th className="px-4 py-3 text-left font-semibold text-brand-dark">
-                                                                    DNI
-                                                                </th>
-                                                                <th className="px-4 py-3 text-left font-semibold text-brand-dark">
-                                                                    Socio
-                                                                </th>
-                                                                <th className="px-4 py-3 text-left font-semibold text-brand-dark">
-                                                                    Ficha médica
-                                                                </th>
-                                                                <th className="px-4 py-3 text-left font-semibold text-brand-dark">
-                                                                    Fichaje
-                                                                </th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody className="divide-y divide-brand-light/20">
-                                                            {group.players.map(
-                                                                (player, idx) => (
-                                                                    <tr
-                                                                        key={
-                                                                            player.id
-                                                                        }
-                                                                        className={
-                                                                            idx % 2 === 0
-                                                                                ? 'bg-brand-white'
-                                                                                : 'bg-brand-light/5'
-                                                                        }
-                                                                    >
-                                                                        <td className="px-4 py-3 font-medium text-brand-dark">
-                                                                            {player.full_name}
-                                                                        </td>
-                                                                        <td className="px-4 py-3 text-brand-dark/80">
-                                                                            {player.dni}
-                                                                        </td>
-                                                                        <td className="px-4 py-3 text-brand-dark/80">
-                                                                            {player.numero_socio ||
-                                                                                '-'}
-                                                                        </td>
-                                                                        <td className="px-4 py-3">
-                                                                            {player.medical_check ? (
-                                                                                <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
-                                                                                    <FaUserCheck className="h-3 w-3" />
-                                                                                    OK
-                                                                                </span>
-                                                                            ) : (
-                                                                                <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
-                                                                                    <FaUserClock className="h-3 w-3" />
-                                                                                    Pendiente
-                                                                                </span>
-                                                                            )}
-                                                                        </td>
-                                                                        <td className="px-4 py-3">
-                                                                            {player.registered ? (
-                                                                                <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
-                                                                                    <FaUserCheck className="h-3 w-3" />
-                                                                                    OK
-                                                                                </span>
-                                                                            ) : (
-                                                                                <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
-                                                                                    <FaUserClock className="h-3 w-3" />
-                                                                                    Pendiente
-                                                                                </span>
-                                                                            )}
-                                                                        </td>
+                                                (group.categories || []).map((category) => (
+                                                    <div key={category.id}>
+                                                        <h4 className="mb-2 text-sm font-semibold text-brand-dark">
+                                                            Categoría {category.category_year}
+                                                        </h4>
+                                                        <div className="overflow-hidden rounded-xl border border-brand-light/30">
+                                                            <table className="min-w-full text-sm">
+                                                                <thead>
+                                                                    <tr className="bg-brand-light/15">
+                                                                        <th className="px-4 py-3 text-left font-semibold text-brand-dark">
+                                                                            Jugador
+                                                                        </th>
+                                                                        <th className="px-4 py-3 text-left font-semibold text-brand-dark">
+                                                                            DNI
+                                                                        </th>
+                                                                        <th className="px-4 py-3 text-left font-semibold text-brand-dark">
+                                                                            Socio
+                                                                        </th>
+                                                                        <th className="px-4 py-3 text-left font-semibold text-brand-dark">
+                                                                            Ficha médica
+                                                                        </th>
+                                                                        <th className="px-4 py-3 text-left font-semibold text-brand-dark">
+                                                                            Fichaje
+                                                                        </th>
                                                                     </tr>
-                                                                ),
-                                                            )}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
+                                                                </thead>
+                                                                <tbody className="divide-y divide-brand-light/20">
+                                                                    {(category.players || []).map(
+                                                                        (player, idx) => (
+                                                                            <tr
+                                                                                key={player.id}
+                                                                                className={
+                                                                                    idx % 2 === 0
+                                                                                        ? 'bg-brand-white'
+                                                                                        : 'bg-brand-light/5'
+                                                                                }
+                                                                            >
+                                                                                <td className="px-4 py-3 font-medium text-brand-dark">
+                                                                                    {player.full_name}
+                                                                                </td>
+                                                                                <td className="px-4 py-3 text-brand-dark/80">
+                                                                                    {player.dni}
+                                                                                </td>
+                                                                                <td className="px-4 py-3 text-brand-dark/80">
+                                                                                    {player.numero_socio || '-'}
+                                                                                </td>
+                                                                                <td className="px-4 py-3">
+                                                                                    {player.medical_check ? (
+                                                                                        <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+                                                                                            <FaUserCheck className="h-3 w-3" />
+                                                                                            OK
+                                                                                        </span>
+                                                                                    ) : (
+                                                                                        <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                                                                                            <FaUserClock className="h-3 w-3" />
+                                                                                            Pendiente
+                                                                                        </span>
+                                                                                    )}
+                                                                                </td>
+                                                                                <td className="px-4 py-3">
+                                                                                    {player.registered ? (
+                                                                                        <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+                                                                                            <FaUserCheck className="h-3 w-3" />
+                                                                                            OK
+                                                                                        </span>
+                                                                                    ) : (
+                                                                                        <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                                                                                            <FaUserClock className="h-3 w-3" />
+                                                                                            Pendiente
+                                                                                        </span>
+                                                                                    )}
+                                                                                </td>
+                                                                            </tr>
+                                                                        ),
+                                                                    )}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                ))
                                             )}
                                         </div>
                                     </section>

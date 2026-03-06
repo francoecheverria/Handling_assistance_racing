@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Group extends Model
 {
@@ -18,7 +19,6 @@ class Group extends Model
         'name',
         'schedule',
         'description',
-        'category_year',
     ];
 
     public function coaches(): BelongsToMany
@@ -27,9 +27,14 @@ class Group extends Model
             ->withTimestamps();
     }
 
-    public function players(): HasMany
+    public function categories(): HasMany
     {
-        return $this->hasMany(Player::class);
+        return $this->hasMany(Category::class)->orderBy('category_year');
+    }
+
+    public function players(): HasManyThrough
+    {
+        return $this->hasManyThrough(Player::class, Category::class);
     }
 
     public function attendanceSessions(): HasMany

@@ -6,19 +6,33 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import { FaCalendarAlt, FaEdit, FaPlusCircle, FaSave, FaTrashAlt, FaUsers } from 'react-icons/fa';
 
-export default function GroupsIndex({ groups, can }) {
+export default function GroupsIndex({ groups = [], coaches = [], can }) {
     const [showCreateModal, setShowCreateModal] = useState(false);
 
     const createGroupForm = useForm({
         name: '',
         schedule: '',
         description: '',
-        category_year: '',
+        categories: [new Date().getFullYear()],
+        coach_ids: [],
     });
+
+    const toggleCoachInCreate = (coachId) => {
+        const ids = createGroupForm.data.coach_ids.includes(coachId)
+            ? createGroupForm.data.coach_ids.filter((id) => id !== coachId)
+            : [...createGroupForm.data.coach_ids, coachId];
+        createGroupForm.setData('coach_ids', ids);
+    };
 
     const onCreateGroup = (e) => {
         e.preventDefault();
-        createGroupForm.post(route('groups.store'), {
+        const payload = {
+            ...createGroupForm.data,
+            categories: createGroupForm.data.categories.filter((y) => y !== '' && y != null).map(Number),
+            coach_ids: createGroupForm.data.coach_ids || [],
+        };
+        if (payload.categories.length === 0) payload.categories = [new Date().getFullYear()];
+        router.post(route('groups.store'), payload, {
             preserveScroll: true,
             onSuccess: () => {
                 createGroupForm.reset();
@@ -82,8 +96,11 @@ export default function GroupsIndex({ groups, can }) {
                                                 {group.schedule || 'Sin definir'}
                                             </p>
                                             <p className="text-sm text-brand-dark/80">
-                                                Categoría:{' '}
-                                                {group.category_year || 'Sin definir'}
+                                                Categorías:{' '}
+                                                {(group.categories || [])
+                                                    .map((c) => c.category_year)
+                                                    .filter(Boolean)
+                                                    .join(', ') || 'Sin definir'}
                                             </p>
                                             <p className="text-sm text-brand-dark/80">
                                                 <span className="inline-flex items-center gap-1">
@@ -188,24 +205,72 @@ export default function GroupsIndex({ groups, can }) {
                             </div>
                             <div>
                                 <label className="mb-1 block text-sm font-medium text-brand-dark">
-                                    Categoría (año) *
+                                    Categorías (años) *
                                 </label>
-                                <input
-                                    type="number"
-                                    min="1990"
-                                    max="2100"
-                                    className="w-full rounded border-brand-light/50 bg-brand-white text-brand-dark"
-                                    placeholder="Ej: 2010"
-                                    value={createGroupForm.data.category_year}
-                                    onChange={(e) =>
-                                        createGroupForm.setData(
-                                            'category_year',
-                                            e.target.value,
-                                        )
+                                {(createGroupForm.data.categories || []).map((year, idx) => (
+                                    <div key={idx} className="mb-2 flex gap-2">
+                                        <input
+                                            type="number"
+                                            min="1990"
+                                            max="2100"
+                                            className="w-28 rounded border-brand-light/50 bg-brand-white text-brand-dark"
+                                            placeholder="Ej: 2010"
+                                            value={year === '' ? '' : year}
+                                            onChange={(e) => {
+                                                const next = [...(createGroupForm.data.categories || [])];
+                                                next[idx] = e.target.value === '' ? '' : Number(e.target.value);
+                                                createGroupForm.setData('categories', next);
+                                            }}
+                                        />
+                                        <button
+                                            type="button"
+                                            className="rounded border border-red-300 px-2 text-red-600 hover:bg-red-50"
+                                            onClick={() => {
+                                                const next = (createGroupForm.data.categories || []).filter((_, i) => i !== idx);
+                                                if (next.length === 0) next.push(new Date().getFullYear());
+                                                createGroupForm.setData('categories', next);
+                                            }}
+                                        >
+                                            Quitar
+                                        </button>
+                                    </div>
+                                ))}
+                                <button
+                                    type="button"
+                                    className="mt-1 text-sm text-brand-primary hover:underline"
+                                    onClick={() =>
+                                        createGroupForm.setData('categories', [
+                                            ...(createGroupForm.data.categories || []),
+                                            new Date().getFullYear(),
+                                        ])
                                     }
-                                />
-                                <InputError message={createGroupForm.errors.category_year} className="mt-1" />
+                                >
+                                    + Añadir categoría
+                                </button>
+                                <InputError message={createGroupForm.errors.categories} className="mt-1" />
                             </div>
+                            {coaches.length > 0 && (
+                                <div className="rounded border border-brand-light/40 bg-brand-light/10 p-3">
+                                    <p className="mb-2 text-sm font-medium text-brand-dark">
+                                        Profesores a asignar
+                                    </p>
+                                    <div className="flex flex-wrap gap-3">
+                                        {coaches.map((coach) => (
+                                            <label
+                                                key={coach.id}
+                                                className="flex cursor-pointer items-center gap-2 text-sm text-brand-dark"
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={(createGroupForm.data.coach_ids || []).includes(coach.id)}
+                                                    onChange={() => toggleCoachInCreate(coach.id)}
+                                                />
+                                                {coach.name}
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                             <div className="flex gap-2">
                                 <button
                                     type="submit"

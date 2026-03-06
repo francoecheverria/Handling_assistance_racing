@@ -20,8 +20,7 @@ class Player extends Model
         'dni',
         'numero_socio',
         'fecha_nacimiento',
-        'category_year',
-        'group_id',
+        'category_id',
         'medical_check',
         'imagen_compromiso',
         'registered',
@@ -54,9 +53,14 @@ class Player extends Model
         return trim(implode(' ', array_filter([$this->nombre, $this->apellido])));
     }
 
-    public function group(): BelongsTo
+    public function category(): BelongsTo
     {
-        return $this->belongsTo(Group::class);
+        return $this->belongsTo(Category::class);
+    }
+
+    public function getCategoryYearAttribute(): ?int
+    {
+        return $this->relationLoaded('category') ? $this->category?->category_year : null;
     }
 
     public function attendanceRecords(): HasMany

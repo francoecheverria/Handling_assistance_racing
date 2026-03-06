@@ -43,7 +43,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                 <NavLink
                                     href={route('dashboard')}
                                     active={route().current('dashboard')}
-                                    className=" !text-white hover:!text-white/85 !border-brand-primary/40"
+                                    className=" !text-white hover:!text-white/85 !border-brand-primary/40 dark:!text-white dark:hover:!text-white/85"
                                 >
                                     <span className="inline-flex items-center gap-2">
                                         <FaHome className="h-4 w-4" />
@@ -54,7 +54,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                     <NavLink
                                         href={route('administrators.index')}
                                         active={route().current('administrators.index')}
-                                        className=" !text-white hover:!text-white/85 !border-brand-primary/40"
+                                        className=" !text-white hover:!text-white/85 !border-brand-primary/40 dark:!text-white dark:hover:!text-white/85"
                                     >
                                         <span className="inline-flex items-center gap-2">
                                             <FaUserShield className="h-4 w-4" />
@@ -66,7 +66,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                     <NavLink
                                         href={route('coaches.index')}
                                         active={route().current('coaches.index')}
-                                        className=" !text-white hover:!text-white/85 !border-brand-primary/40"
+                                        className=" !text-white hover:!text-white/85 !border-brand-primary/40 dark:!text-white dark:hover:!text-white/85"
                                     >
                                         <span className="inline-flex items-center gap-2">
                                             <FaChalkboardTeacher className="h-4 w-4" />
@@ -82,7 +82,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                             route().current('groups.show') ||
                                             route().current('groups.edit')
                                         }
-                                        className=" !text-white hover:!text-white/85 !border-brand-primary/40"
+                                        className=" !text-white hover:!text-white/85 !border-brand-primary/40 dark:!text-white dark:hover:!text-white/85"
                                     >
                                         <span className="inline-flex items-center gap-2">
                                             <FaClipboardList className="h-4 w-4" />
@@ -94,7 +94,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                     <NavLink
                                         href={route('players.mine')}
                                         active={route().current('players.mine')}
-                                        className=" !text-white hover:!text-white/85 !border-brand-primary/40"
+                                        className=" !text-white hover:!text-white/85 !border-brand-primary/40 dark:!text-white dark:hover:!text-white/85"
                                     >
                                         <span className="inline-flex items-center gap-2">
                                             <FaUsers className="h-4 w-4" />
@@ -106,7 +106,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                     <NavLink
                                         href={route('attendances.index')}
                                         active={route().current('attendances.index')}
-                                        className=" !text-white hover:!text-white/85 !border-brand-primary/40"
+                                        className=" !text-white hover:!text-white/85 !border-brand-primary/40 dark:!text-white dark:hover:!text-white/85"
                                     >
                                         <span className="inline-flex items-center gap-2">
                                             <FaCalendarCheck className="h-4 w-4" />
