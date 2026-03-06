@@ -1,4 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import InputError from '@/Components/InputError';
 import Modal from '@/Components/Modal';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
@@ -213,9 +214,7 @@ export default function CoachesIndex({ coaches, groups = [] }) {
                                 updateForm.setData('name', e.target.value)
                             }
                         />
-                        {updateForm.errors.name && (
-                            <p className="text-sm text-red-600">{updateForm.errors.name}</p>
-                        )}
+                        <InputError message={updateForm.errors.name} className="mt-1" />
                         <div>
                             <label className="mb-1 block text-sm font-medium text-brand-dark">
                                 Email (para iniciar sesión)
@@ -229,9 +228,7 @@ export default function CoachesIndex({ coaches, groups = [] }) {
                                     updateForm.setData('email', e.target.value)
                                 }
                             />
-                            {updateForm.errors.email && (
-                                <p className="mt-1 text-sm text-red-600">{updateForm.errors.email}</p>
-                            )}
+                            <InputError message={updateForm.errors.email} className="mt-1" />
                         </div>
                         <div>
                             <label className="mb-1 block text-sm font-medium text-brand-dark">
@@ -246,9 +243,7 @@ export default function CoachesIndex({ coaches, groups = [] }) {
                                     updateForm.setData('password', e.target.value)
                                 }
                             />
-                            {updateForm.errors.password && (
-                                <p className="mt-1 text-sm text-red-600">{updateForm.errors.password}</p>
-                            )}
+                            <InputError message={updateForm.errors.password} className="mt-1" />
                             <input
                                 type="password"
                                 className="mt-2 w-full rounded border-brand-light/50 bg-brand-white text-brand-dark"
@@ -327,9 +322,7 @@ export default function CoachesIndex({ coaches, groups = [] }) {
                                 createForm.setData('name', e.target.value)
                             }
                         />
-                        {createForm.errors.name && (
-                            <p className="text-sm text-red-600">{createForm.errors.name}</p>
-                        )}
+                        <InputError message={createForm.errors.name} className="mt-1" />
                         <div>
                             <label className="mb-1 block text-sm font-medium text-brand-dark">
                                 Email (para iniciar sesión) *
@@ -343,9 +336,7 @@ export default function CoachesIndex({ coaches, groups = [] }) {
                                     createForm.setData('email', e.target.value)
                                 }
                             />
-                            {createForm.errors.email && (
-                                <p className="mt-1 text-sm text-red-600">{createForm.errors.email}</p>
-                            )}
+                            <InputError message={createForm.errors.email} className="mt-1" />
                         </div>
                         <div>
                             <label className="mb-1 block text-sm font-medium text-brand-dark">
@@ -360,9 +351,7 @@ export default function CoachesIndex({ coaches, groups = [] }) {
                                     createForm.setData('password', e.target.value)
                                 }
                             />
-                            {createForm.errors.password && (
-                                <p className="mt-1 text-sm text-red-600">{createForm.errors.password}</p>
-                            )}
+                            <InputError message={createForm.errors.password} className="mt-1" />
                         </div>
                         <div>
                             <label className="mb-1 block text-sm font-medium text-brand-dark">
@@ -377,9 +366,7 @@ export default function CoachesIndex({ coaches, groups = [] }) {
                                     createForm.setData('password_confirmation', e.target.value)
                                 }
                             />
-                            {createForm.errors.password_confirmation && (
-                                <p className="mt-1 text-sm text-red-600">{createForm.errors.password_confirmation}</p>
-                            )}
+                            <InputError message={createForm.errors.password_confirmation} className="mt-1" />
                         </div>
                         <input
                             className="rounded border-brand-light/50 bg-brand-white text-brand-dark"

@@ -1,4 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import InputError from '@/Components/InputError';
 import Modal from '@/Components/Modal';
 import { Head, useForm } from '@inertiajs/react';
 import { useState } from 'react';
@@ -178,11 +179,7 @@ export default function AdministratorsIndex({ administrators }) {
                                     createForm.setData('name', e.target.value)
                                 }
                             />
-                            {createForm.errors.name && (
-                                <p className="mt-1 text-sm text-red-600">
-                                    {createForm.errors.name}
-                                </p>
-                            )}
+                            <InputError message={createForm.errors.name} className="mt-1" />
                         </div>
                         <div>
                             <label className="mb-1 block text-sm font-medium text-brand-dark">
@@ -197,11 +194,7 @@ export default function AdministratorsIndex({ administrators }) {
                                     createForm.setData('email', e.target.value)
                                 }
                             />
-                            {createForm.errors.email && (
-                                <p className="mt-1 text-sm text-red-600">
-                                    {createForm.errors.email}
-                                </p>
-                            )}
+                            <InputError message={createForm.errors.email} className="mt-1" />
                         </div>
                         <div>
                             <label className="mb-1 block text-sm font-medium text-brand-dark">
@@ -219,11 +212,7 @@ export default function AdministratorsIndex({ administrators }) {
                                     )
                                 }
                             />
-                            {createForm.errors.password && (
-                                <p className="mt-1 text-sm text-red-600">
-                                    {createForm.errors.password}
-                                </p>
-                            )}
+                            <InputError message={createForm.errors.password} className="mt-1" />
                         </div>
                         <div>
                             <label className="mb-1 block text-sm font-medium text-brand-dark">
@@ -241,13 +230,7 @@ export default function AdministratorsIndex({ administrators }) {
                                     )
                                 }
                             />
-                            {createForm.errors.password_confirmation && (
-                                <p className="mt-1 text-sm text-red-600">
-                                    {
-                                        createForm.errors.password_confirmation
-                                    }
-                                </p>
-                            )}
+                            <InputError message={createForm.errors.password_confirmation} className="mt-1" />
                         </div>
                         <div className="mt-2 flex gap-2">
                             <button
@@ -298,11 +281,7 @@ export default function AdministratorsIndex({ administrators }) {
                                     editForm.setData('name', e.target.value)
                                 }
                             />
-                            {editForm.errors.name && (
-                                <p className="mt-1 text-sm text-red-600">
-                                    {editForm.errors.name}
-                                </p>
-                            )}
+                            <InputError message={editForm.errors.name} className="mt-1" />
                         </div>
                         <div>
                             <label className="mb-1 block text-sm font-medium text-brand-dark">
@@ -317,11 +296,7 @@ export default function AdministratorsIndex({ administrators }) {
                                     editForm.setData('email', e.target.value)
                                 }
                             />
-                            {editForm.errors.email && (
-                                <p className="mt-1 text-sm text-red-600">
-                                    {editForm.errors.email}
-                                </p>
-                            )}
+                            <InputError message={editForm.errors.email} className="mt-1" />
                         </div>
                         <div>
                             <label className="mb-1 block text-sm font-medium text-brand-dark">
@@ -339,11 +314,7 @@ export default function AdministratorsIndex({ administrators }) {
                                     )
                                 }
                             />
-                            {editForm.errors.password && (
-                                <p className="mt-1 text-sm text-red-600">
-                                    {editForm.errors.password}
-                                </p>
-                            )}
+                            <InputError message={editForm.errors.password} className="mt-1" />
                             <input
                                 type="password"
                                 className="mt-2 w-full rounded border-brand-light/50 bg-brand-white text-brand-dark"
@@ -356,6 +327,7 @@ export default function AdministratorsIndex({ administrators }) {
                                     )
                                 }
                             />
+                            <InputError message={editForm.errors.password_confirmation} className="mt-1" />
                         </div>
                         <div className="mt-2 flex gap-2">
                             <button

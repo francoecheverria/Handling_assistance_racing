@@ -1,4 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import InputError from '@/Components/InputError';
 import Modal from '@/Components/Modal';
 import SchedulePicker from '@/Components/SchedulePicker';
 import { Head, Link, router, useForm } from '@inertiajs/react';
@@ -139,6 +140,20 @@ export default function GroupsShow({ group, can }) {
                         {group.name}
                     </h2>
                     <div className="flex items-center gap-3">
+                        {can?.deleteGroup && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (!confirm('¿Eliminar esta tira? Se borrarán también sus jugadores y asistencias.')) return;
+                                    router.delete(route('groups.destroy', group.id), {
+                                        onSuccess: () => router.visit(route('groups.index')),
+                                    });
+                                }}
+                                className="rounded-md border border-red-500/50 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+                            >
+                                Borrar tira
+                            </button>
+                        )}
                         <Link
                             href={route('groups.index')}
                             className="text-sm text-brand-primary hover:underline"
@@ -321,6 +336,7 @@ export default function GroupsShow({ group, can }) {
                                     updateForm.setData('nombre', e.target.value)
                                 }
                             />
+                            <InputError message={updateForm.errors.nombre} className="mt-1" />
                             <input
                                 className="rounded border-brand-light/50 bg-brand-white text-brand-dark"
                                 placeholder="Apellido"
@@ -329,6 +345,7 @@ export default function GroupsShow({ group, can }) {
                                     updateForm.setData('apellido', e.target.value)
                                 }
                             />
+                            <InputError message={updateForm.errors.apellido} className="mt-1" />
                             <input
                                 className="rounded border-brand-light/50 bg-brand-white text-brand-dark"
                                 placeholder="DNI (sin puntos) *"
@@ -337,6 +354,7 @@ export default function GroupsShow({ group, can }) {
                                     updateForm.setData('dni', e.target.value)
                                 }
                             />
+                            <InputError message={updateForm.errors.dni} className="mt-1" />
                             <input
                                 className="rounded border-brand-light/50 bg-brand-white text-brand-dark"
                                 placeholder="Número de socio"
@@ -370,6 +388,7 @@ export default function GroupsShow({ group, can }) {
                                     updateForm.setData('mail', e.target.value)
                                 }
                             />
+                            <InputError message={updateForm.errors.mail} className="mt-1 md:col-span-2" />
                             <input
                                 className="rounded border-brand-light/50 bg-brand-white text-brand-dark"
                                 placeholder="Beca (opcional)"
@@ -464,6 +483,7 @@ export default function GroupsShow({ group, can }) {
                                     createForm.setData('nombre', e.target.value)
                                 }
                             />
+                            <InputError message={createForm.errors.nombre} className="mt-1" />
                             <input
                                 className="rounded border-brand-light/50 bg-brand-white text-brand-dark"
                                 placeholder="Apellido"
@@ -472,6 +492,7 @@ export default function GroupsShow({ group, can }) {
                                     createForm.setData('apellido', e.target.value)
                                 }
                             />
+                            <InputError message={createForm.errors.apellido} className="mt-1" />
                             <input
                                 className="rounded border-brand-light/50 bg-brand-white text-brand-dark"
                                 placeholder="DNI (sin puntos) *"
@@ -480,6 +501,7 @@ export default function GroupsShow({ group, can }) {
                                     createForm.setData('dni', e.target.value)
                                 }
                             />
+                            <InputError message={createForm.errors.dni} className="mt-1" />
                             <input
                                 className="rounded border-brand-light/50 bg-brand-white text-brand-dark"
                                 placeholder="Número de socio"
@@ -513,6 +535,7 @@ export default function GroupsShow({ group, can }) {
                                     createForm.setData('mail', e.target.value)
                                 }
                             />
+                            <InputError message={createForm.errors.mail} className="mt-1 md:col-span-2" />
                             <input
                                 className="rounded border-brand-light/50 bg-brand-white text-brand-dark"
                                 placeholder="Beca (opcional, ej: 50%)"
@@ -615,11 +638,7 @@ export default function GroupsShow({ group, can }) {
                                     editGroupForm.setData('name', e.target.value)
                                 }
                             />
-                            {editGroupForm.errors.name && (
-                                <p className="mt-1 text-sm text-red-600">
-                                    {editGroupForm.errors.name}
-                                </p>
-                            )}
+                            <InputError message={editGroupForm.errors.name} className="mt-1" />
                         </div>
                         <SchedulePicker
                             value={editGroupForm.data.schedule}
@@ -644,11 +663,7 @@ export default function GroupsShow({ group, can }) {
                                     )
                                 }
                             />
-                            {editGroupForm.errors.description && (
-                                <p className="mt-1 text-sm text-red-600">
-                                    {editGroupForm.errors.description}
-                                </p>
-                            )}
+                            <InputError message={editGroupForm.errors.description} className="mt-1" />
                         </div>
                         <div>
                             <label className="mb-1 block text-sm font-medium text-brand-dark">
@@ -668,11 +683,7 @@ export default function GroupsShow({ group, can }) {
                                     )
                                 }
                             />
-                            {editGroupForm.errors.category_year && (
-                                <p className="mt-1 text-sm text-red-600">
-                                    {editGroupForm.errors.category_year}
-                                </p>
-                            )}
+                            <InputError message={editGroupForm.errors.category_year} className="mt-1" />
                         </div>
                         <div className="flex gap-2">
                             <button

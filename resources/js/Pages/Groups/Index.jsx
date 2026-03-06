@@ -1,9 +1,10 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import InputError from '@/Components/InputError';
 import Modal from '@/Components/Modal';
 import SchedulePicker from '@/Components/SchedulePicker';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
-import { FaCalendarAlt, FaEdit, FaPlusCircle, FaSave, FaUsers } from 'react-icons/fa';
+import { FaCalendarAlt, FaEdit, FaPlusCircle, FaSave, FaTrashAlt, FaUsers } from 'react-icons/fa';
 
 export default function GroupsIndex({ groups, can }) {
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -98,13 +99,28 @@ export default function GroupsIndex({ groups, can }) {
                                                     .join(', ') || 'Sin asignar'}
                                             </p>
                                             </Link>
-                                            <Link
-                                                href={`${route('groups.show', group.id)}?edit=1`}
-                                                className="mt-2 inline-flex items-center gap-1 text-sm text-brand-primary hover:underline"
-                                            >
-                                                <FaEdit className="h-3.5 w-3.5" />
-                                                Editar tira
-                                            </Link>
+                                            <div className="mt-2 flex flex-wrap items-center gap-3">
+                                                <Link
+                                                    href={`${route('groups.show', group.id)}?edit=1`}
+                                                    className="inline-flex items-center gap-1 text-sm text-brand-primary hover:underline"
+                                                >
+                                                    <FaEdit className="h-3.5 w-3.5" />
+                                                    Editar tira
+                                                </Link>
+                                                {can?.deleteGroup && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            if (!confirm('¿Eliminar esta tira? Se borrarán también sus jugadores y asistencias.')) return;
+                                                            router.delete(route('groups.destroy', group.id), { preserveScroll: true });
+                                                        }}
+                                                        className="inline-flex items-center gap-1 text-sm text-red-600 hover:underline"
+                                                    >
+                                                        <FaTrashAlt className="h-3.5 w-3.5" />
+                                                        Borrar tira
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -144,11 +160,7 @@ export default function GroupsIndex({ groups, can }) {
                                         )
                                     }
                                 />
-                                {createGroupForm.errors.name && (
-                                    <p className="mt-1 text-sm text-red-600">
-                                        {createGroupForm.errors.name}
-                                    </p>
-                                )}
+                                <InputError message={createGroupForm.errors.name} className="mt-1" />
                             </div>
                             <SchedulePicker
                                 value={createGroupForm.data.schedule}
@@ -192,11 +204,7 @@ export default function GroupsIndex({ groups, can }) {
                                         )
                                     }
                                 />
-                                {createGroupForm.errors.category_year && (
-                                    <p className="mt-1 text-sm text-red-600">
-                                        {createGroupForm.errors.category_year}
-                                    </p>
-                                )}
+                                <InputError message={createGroupForm.errors.category_year} className="mt-1" />
                             </div>
                             <div className="flex gap-2">
                                 <button

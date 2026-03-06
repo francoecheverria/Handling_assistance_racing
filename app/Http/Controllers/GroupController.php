@@ -28,6 +28,7 @@ class GroupController extends Controller
                     'groups' => [],
                     'can' => [
                         'createGroup' => $user->can('gestionar tiras'),
+                        'deleteGroup' => $user->can('gestionar tiras'),
                     ],
                 ]);
             }
@@ -41,6 +42,7 @@ class GroupController extends Controller
             'groups' => $groupsQuery->get(),
             'can' => [
                 'createGroup' => $user->can('gestionar tiras'),
+                'deleteGroup' => $user->can('gestionar tiras'),
             ],
         ]);
     }
@@ -101,8 +103,23 @@ class GroupController extends Controller
                 'createPlayer' => $request->user()->can('crear jugadores'),
                 'editPlayer' => $request->user()->can('editar jugadores'),
                 'deletePlayer' => $request->user()->can('eliminar jugadores'),
+                'deleteGroup' => $request->user()->can('gestionar tiras'),
             ],
         ]);
+    }
+
+    public function destroy(Request $request, Group $group): RedirectResponse
+    {
+        abort_unless($request->user()->can('gestionar tiras'), 403);
+        $this->ensureUserCanAccessGroup($request->user(), $group);
+
+        $group->attendanceSessions->each(fn ($session) => $session->records()->delete());
+        $group->attendanceSessions()->delete();
+        $group->players()->delete();
+        $group->coaches()->detach();
+        $group->delete();
+
+        return redirect()->route('groups.index');
     }
 
     public function myPlayers(Request $request): Response

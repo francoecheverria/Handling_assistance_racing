@@ -89,6 +89,9 @@ Route::middleware('auth')->group(function () {
     Route::put('/mis-tiras/{group}', [GroupController::class, 'update'])
         ->middleware('permission:ver jugadores')
         ->name('groups.update');
+    Route::delete('/mis-tiras/{group}', [GroupController::class, 'destroy'])
+        ->middleware('permission:gestionar tiras')
+        ->name('groups.destroy');
     Route::get('/mis-jugadores', [GroupController::class, 'myPlayers'])
         ->middleware('permission:ver jugadores')
         ->name('players.mine');

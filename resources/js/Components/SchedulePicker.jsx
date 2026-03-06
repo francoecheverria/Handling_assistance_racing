@@ -128,7 +128,11 @@ export default function SchedulePicker({ value = '', onChange, id, className = '
                     className="w-full max-w-[10rem] rounded border border-brand-light/50 bg-brand-white px-3 py-2 text-brand-dark"
                 />
             </div>
-            {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+            {error && (
+                <p className="mt-2 text-sm text-red-600">
+                    {Array.isArray(error) ? error[0] : error}
+                </p>
+            )}
         </div>
     );
 }
