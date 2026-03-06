@@ -146,7 +146,7 @@ class AttendanceController extends Controller
             'close_session' => ['nullable', 'boolean'],
         ]);
 
-        $allowedPlayerIds = $session->group->players()->pluck('id')->all();
+        $allowedPlayerIds = $session->group->players()->pluck('players.id')->all();
 
         foreach ($validated['records'] as $record) {
             if (! in_array((int) $record['player_id'], $allowedPlayerIds, true)) {
