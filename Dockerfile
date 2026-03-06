@@ -43,7 +43,7 @@ RUN npm install && npm run build
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Railway usa la variable de entorno PORT dinámicamente
-EXPOSE 8000
+EXPOSE 8080
 
-# Usamos la variable $PORT de Railway si está disponible, sino 8000
-CMD ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=${PORT:-8000}"]
+# Usamos la variable $PORT de Railway si está disponible, sino 8080
+CMD ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"]
