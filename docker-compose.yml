@@ -1,0 +1,62 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: racing-app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    ports:
+      - "8002:8000"   # 8002 en el host para evitar conflictos locales
+    environment:
+      - APP_ENV=local
+      - APP_URL=http://localhost:8002
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=racing
+      - DB_USERNAME=racing
+      - DB_PASSWORD=secret
+    depends_on:
+      mysql:
+        condition: service_healthy
+    command: >
+      sh -c "php artisan serve --host=0.0.0.0 --port=8000"
+
+  node:
+    image: node:20-alpine
+    container_name: racing-node
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=development
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+    profiles:
+      - dev
+
+  mysql:
+    image: mysql:8.0
+    container_name: racing-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: racing
+      MYSQL_USER: racing
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - racing-mysql-data:/var/lib/mysql
+    ports:
+      - "3310:3306"   # 3310 en el host para evitar conflictos locales
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  racing-mysql-data:
